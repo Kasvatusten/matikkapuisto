@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Matikkapuisto</title>
+<style>
+:root{
+  --sky1:#dff3ff; --sky2:#fff6e5;
+  --ink:#2b2d42; --muted:#5f6475;
+  --red:#ef5b5b; --yellow:#ffc94a; --blue:#4aa3df; --green:#3dbb7a; --purple:#9b7be0; --orange:#ff9f43; --pink:#f78fb3;
+  --shadow:0 6px 0 rgba(0,0,0,.07), 0 10px 24px rgba(40,50,80,.12);
+  --c:var(--blue);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%}
+body{
+  font-family:ui-rounded,"SF Pro Rounded","Segoe UI Rounded","Segoe UI",system-ui,-apple-system,sans-serif;
+  color:var(--ink);
+  background:linear-gradient(180deg,var(--sky1),var(--sky2)) fixed;
+  touch-action:manipulation;user-select:none;-webkit-user-select:none;overflow-x:hidden;
+}
+button{font:inherit;color:inherit;touch-action:manipulation;cursor:pointer}
+.screen{display:none;min-height:100vh;min-height:100dvh;flex-direction:column;
+  padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+.screen.active{display:flex}
+.screen.grassy{background:
+   radial-gradient(60% 14vh at 15% 100%,#c6ecb0 0 70%,transparent 71%) bottom/100% 14vh no-repeat,
+   radial-gradient(55% 12vh at 85% 100%,#b3e39a 0 70%,transparent 71%) bottom/100% 14vh no-repeat}
+
+/* Markiisi */
+.awning{filter:drop-shadow(0 3px 2px rgba(0,0,0,.12))}
+.stripes{height:20px;background:repeating-linear-gradient(90deg,var(--red) 0 48px,#fff 48px 96px)}
+.scallops{height:16px;background:
+  radial-gradient(circle at 24px 0,var(--red) 23px,transparent 24px) 0 0/96px 16px repeat-x,
+  radial-gradient(circle at 72px 0,#fff 23px,transparent 24px) 0 0/96px 16px repeat-x}
+.awning.kiosk-aw .stripes{background:repeating-linear-gradient(90deg,var(--orange) 0 48px,#fff 48px 96px)}
+.awning.kiosk-aw .scallops{background:
+  radial-gradient(circle at 24px 0,var(--orange) 23px,transparent 24px) 0 0/96px 16px repeat-x,
+  radial-gradient(circle at 72px 0,#fff 23px,transparent 24px) 0 0/96px 16px repeat-x}
+
+/* Yleiset */
+.wallet{background:#fff3cc;border:3px solid #f2c94c;border-radius:999px;padding:6px 16px;font-size:clamp(20px,3vw,28px);font-weight:800;white-space:nowrap}
+.icon-btn{width:clamp(56px,8vmin,72px);height:clamp(56px,8vmin,72px);border-radius:50%;border:none;background:#fff;box-shadow:var(--shadow);font-size:clamp(26px,4vmin,34px);flex:none}
+.big-btn{border:none;border-radius:999px;font-size:clamp(22px,3.4vmin,32px);font-weight:800;padding:16px 34px;background:#fff;box-shadow:var(--shadow)}
+.big-btn.primary{background:var(--green);color:#fff;box-shadow:0 6px 0 #2a8d5a}
+.big-btn:disabled{opacity:.45}
+.topbar{display:flex;align-items:center;gap:12px;padding:10px 16px}
+.topbar .title{flex:1;text-align:center;font-size:clamp(24px,4vw,40px);font-weight:800}
+.host{display:flex;align-items:center;justify-content:center;gap:18px;padding:4px 16px}
+.host-face{font-size:clamp(56px,10vmin,96px);line-height:1}
+.host-face.happy{animation:hop .7s}
+.bubble{background:#fff;border-radius:24px;padding:12px 24px;box-shadow:var(--shadow);font-size:clamp(22px,3.6vw,38px);font-weight:700;position:relative;max-width:min(78vw,760px);text-align:center}
+.bubble::before{content:"";position:absolute;left:-16px;top:50%;transform:translateY(-50%);border:12px solid transparent;border-right:16px solid #fff;border-left:0}
+.bubble .num{font-size:1.35em;color:var(--c)}
+.bubble small{font-size:.7em;color:var(--muted);font-weight:600}
+.bubble .math{display:inline-block;margin-top:4px;background:#fff3cc;border-radius:12px;padding:2px 14px}
+
+/* Aloituskuva */
+.splash{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(8px,1.6vh,18px);padding:14px}
+.welcome{font-size:clamp(30px,5.4vw,64px);margin:0;text-align:center;font-weight:900;line-height:1.05;
+  text-shadow:0 3px 0 #fff,0 -2px 0 #fff,2px 0 0 #fff,-2px 0 0 #fff,0 7px 0 rgba(0,0,0,.12)}
+.welcome .w{display:inline-block;white-space:nowrap}
+.welcome .w span{display:inline-block;animation:wob 2.4s ease-in-out infinite}
+.sub{font-size:clamp(20px,3.4vw,36px);font-weight:800;background:#fff;border-radius:999px;padding:8px 28px;box-shadow:var(--shadow);margin:0;text-align:center}
+.splash-btns{display:flex;gap:16px;align-items:center}
+.splash .big-btn.primary{font-size:clamp(28px,4.6vmin,44px);padding:16px 52px;animation:pulse 2s ease-in-out infinite}
+.mascots{position:absolute;left:0;right:0;bottom:3%;display:flex;justify-content:center;gap:4cqw;pointer-events:none;z-index:200}
+.mascots span{font-size:48px;font-size:7cqw;line-height:1;display:inline-block;animation:hop 1.6s ease-in-out infinite}
+.mascots span:nth-child(2){animation-delay:.2s}.mascots span:nth-child(3){animation-delay:.4s}.mascots span:nth-child(4){animation-delay:.6s}
+
+/* Puistomaisema */
+.park{position:relative;aspect-ratio:16/10;border-radius:26px;overflow:hidden;box-shadow:var(--shadow);container-type:inline-size;background:#9fd8ff}
+.park>svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.park .layer{position:absolute;inset:0}
+.splash .park{width:min(96vw,calc((100dvh - 340px) * 1.6));min-width:280px}
+.pitem{position:absolute;transform:translate(-50%,-50%);font-size:48px;font-size:6.5cqw;line-height:1;touch-action:none;cursor:grab;
+  filter:drop-shadow(0 4px 2px rgba(0,0,0,.22));border-radius:16px}
+.pitem.sel{outline:4px dashed var(--blue);outline-offset:4px;background:rgba(255,255,255,.45)}
+.pitem.dragging{opacity:.3}
+.splash .pitem{pointer-events:none}
+.isvg{width:1em;height:1em;display:inline-block;vertical-align:middle}
+.ghost{position:fixed;pointer-events:none;transform:translate(-50%,-50%) scale(1.25);font-size:64px;line-height:1;z-index:60;filter:drop-shadow(0 8px 6px rgba(0,0,0,.25))}
+/* SVG-animaatiot */
+.wheel{transform-box:view-box;animation:spin 40s linear infinite}
+.gondola{transform-box:fill-box;transform-origin:50% 0;animation:spin 40s linear infinite reverse}
+.sunrays{transform-box:fill-box;transform-origin:center;animation:spin 30s linear infinite}
+.cloud{animation:drift 26s ease-in-out infinite alternate}
+.cloud.c2{animation-duration:34s;animation-delay:-8s}
+.bobsvg{transform-box:fill-box;transform-origin:center;animation:bob 2.2s ease-in-out infinite}
+.bobsvg.d1{animation-delay:-.7s}.bobsvg.d2{animation-delay:-1.4s}
+.flag{transform-box:fill-box;transform-origin:0 50%;animation:flap 1.2s ease-in-out infinite alternate}
+
+/* Koti */
+.home-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px clamp(14px,3vw,32px);flex-wrap:wrap}
+h1{font-size:clamp(28px,4.8vw,48px);margin:0;letter-spacing:.5px}
+.head-right{display:flex;align-items:center;gap:10px}
+.gear{border:none;background:#fff;box-shadow:var(--shadow);border-radius:999px;padding:10px 16px;font-size:16px;display:flex;align-items:center;gap:6px;color:var(--muted)}
+.gear span{font-size:24px}
+.stations{display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(12px,2.2vw,24px);
+  padding:clamp(8px,2vw,20px) clamp(12px,3vw,32px);max-width:1100px;width:100%;margin:0 auto}
+.station{border:none;border-radius:28px;background:#fff;box-shadow:var(--shadow);border-top:12px solid var(--c);
+  padding:clamp(10px,2vw,22px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  min-height:clamp(140px,23vh,250px);transition:transform .15s}
+.station:active,.extra:active{transform:scale(.97)}
+.station .big{font-size:clamp(52px,9.5vmin,104px);line-height:1.1}
+.station .name{font-size:clamp(22px,3.2vw,34px);font-weight:800}
+.station .skill{font-size:clamp(17px,2.3vw,23px);color:var(--muted)}
+.home-extra{display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(12px,2.2vw,24px);padding:0 clamp(12px,3vw,32px) 24px;max-width:1100px;width:100%;margin:0 auto}
+.extra{border:none;border-radius:24px;background:#fff;box-shadow:var(--shadow);padding:12px 18px;display:flex;align-items:center;gap:14px;min-height:96px;text-align:left;transition:transform .15s}
+.extra .ic{font-size:clamp(44px,7vmin,64px);line-height:1}
+.extra .tx{display:flex;flex-direction:column;gap:4px;flex:1}
+.extra .nm{font-size:clamp(22px,3vw,30px);font-weight:800}
+.extra .ds{font-size:clamp(15px,2vw,19px);color:var(--muted)}
+.extra.kiosk-btn{border-bottom:8px solid var(--orange)}
+.extra.park-btn{border-bottom:8px solid var(--green)}
+.extra.locked{background:#f4f5f8}
+.bar{height:14px;background:#e4e8f0;border-radius:999px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--yellow);border-radius:999px}
+@media (max-width:540px){.stations,.home-extra{grid-template-columns:1fr}}
+
+/* Peli */
+.progress{flex:1;display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.dot{width:24px;height:24px;border-radius:50%;background:#fff;border:3px solid #cfd6e4}
+.dot.done{background:var(--yellow);border-color:#e0a800}
+.dot.now{border-color:var(--c);box-shadow:0 0 0 4px rgba(255,255,255,.9)}
+.task{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:10px 16px}
+.tip{font-size:clamp(16px,2.2vw,22px);color:var(--muted)}
+.answers{display:flex;justify-content:center;gap:clamp(12px,2.6vw,28px);padding:8px 16px;flex-wrap:wrap}
+.ans{min-width:clamp(86px,14vmin,136px);height:clamp(86px,14vmin,136px);border:none;border-radius:26px;background:#fff;box-shadow:var(--shadow);
+  font-size:clamp(42px,7.5vmin,74px);font-weight:800;border-bottom:8px solid var(--c);padding:0 14px;transition:transform .1s}
+.ans:active{transform:scale(.95)}
+.ans.right,.card.right{background:#d8f6e5;border-bottom-color:var(--green);outline:5px solid var(--green)}
+.ans.wrong,.card.wrong{opacity:.3;animation:shake .4s}
+.ans:disabled:not(.wrong):not(.right),.card:disabled:not(.wrong):not(.right){opacity:.55}
+.next-wrap{display:flex;justify-content:center;padding:8px 16px calc(18px + env(safe-area-inset-bottom));min-height:110px;align-items:center}
+.next{visibility:hidden;border:none;border-radius:999px;background:var(--green);color:#fff;font-size:clamp(26px,4vmin,38px);font-weight:800;padding:16px 46px;box-shadow:0 6px 0 #2a8d5a}
+.next.show{visibility:visible;animation:pop .35s}
+.group{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.frame{display:grid;grid-template-columns:repeat(var(--cols),auto);gap:4px;background:rgba(255,255,255,.8);border:3px dashed #c4cfe4;border-radius:18px;padding:8px}
+.cell{line-height:1.1;position:relative;border-radius:14px;padding:3px;display:flex;align-items:center;justify-content:center;
+  border:none;background:transparent;transition:transform .15s,opacity .6s,filter .6s}
+.cell.counted{background:#fff0a8}
+.cell .badge{position:absolute;top:-6px;right:-6px;background:var(--ink);color:#fff;border-radius:999px;font-size:clamp(13px,2vmin,18px);
+  min-width:1.6em;height:1.6em;display:flex;align-items:center;justify-content:center;font-weight:800;font-family:system-ui,sans-serif}
+.cell.hl{background:#ffe27a;transform:scale(1.15)}
+.cell.gone{opacity:.15;filter:grayscale(1);transform:translateY(-35%)}
+.cards{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:clamp(12px,2vw,22px);width:min(100%,1100px)}
+.card{border:none;background:#fff;border-radius:24px;box-shadow:var(--shadow);border-bottom:8px solid var(--c);padding:14px;
+  display:flex;align-items:center;justify-content:center;min-height:120px}
+.card .frame{background:transparent;border-color:#e2e8f3}
+.card.glow{animation:glow 1.1s 3}
+@media (max-width:540px){.cards{grid-template-columns:1fr 1fr}}
+.ride{display:flex;flex-direction:column;align-items:center;width:min(100%,900px)}
+.train{display:flex;gap:clamp(6px,1.2vw,12px);align-items:flex-end;justify-content:center;flex-wrap:wrap}
+.car{display:flex;flex-direction:column;align-items:center}
+.rider{font-size:clamp(28px,5vmin,48px);line-height:1;margin-bottom:-6px;z-index:1}
+.wagon{width:clamp(74px,13vmin,124px);height:clamp(70px,12vmin,112px);background:var(--purple);border-radius:20px 20px 12px 12px;
+  color:#fff;font-size:clamp(38px,7vmin,66px);font-weight:800;display:flex;align-items:center;justify-content:center;position:relative;
+  box-shadow:inset 0 -8px 0 rgba(0,0,0,.15);transition:transform .15s}
+.wagon::before,.wagon::after{content:"";position:absolute;bottom:-14px;width:24px;height:24px;border-radius:50%;background:#444;border:5px solid #999}
+.wagon::before{left:12%}.wagon::after{right:12%}
+.wagon.missing{background:#fff;color:var(--purple);outline:4px dashed var(--purple);outline-offset:-4px;box-shadow:none}
+.wagon.hl{transform:translateY(-8px) scale(1.06);background:#ffcf4d;color:var(--ink)}
+.rail{height:10px;width:100%;margin-top:16px;border-radius:5px;background:repeating-linear-gradient(90deg,#8a6d4e 0 18px,#a7845f 18px 26px)}
+.calc{display:flex;align-items:center;justify-content:center;gap:clamp(10px,2vw,22px);flex-wrap:wrap}
+.op{font-size:clamp(46px,8vmin,84px);font-weight:800;color:var(--c)}
+.expr{font-size:clamp(36px,6.5vmin,64px);font-weight:800;background:#fff;border-radius:20px;padding:4px 26px;box-shadow:var(--shadow)}
+.expr .q{color:var(--c)}
+
+/* Loppu */
+.end{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;text-align:center}
+.end .host-face{font-size:clamp(90px,18vmin,170px);animation:hop 1s 2}
+.end h2{font-size:clamp(32px,6vw,58px);margin:0}
+.end .tix{font-size:clamp(36px,7vmin,64px);letter-spacing:6px}
+.end .total{font-size:clamp(20px,2.8vw,28px);font-weight:700}
+.unlock{background:#fff3cc;border:3px solid #f2c94c;border-radius:20px;padding:10px 22px;font-size:clamp(20px,3vw,30px);font-weight:800;animation:pop .5s}
+.end-btns{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;margin-top:10px}
+
+/* Kioski */
+.tabs{display:flex;justify-content:center;gap:12px;padding:6px 16px}
+.tab{border:none;border-radius:999px;padding:12px 26px;font-size:clamp(20px,2.8vw,28px);font-weight:800;background:#fff;box-shadow:var(--shadow);color:var(--muted)}
+.tab.sel{background:var(--orange);color:#fff}
+.friends{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;padding:6px 16px;font-size:clamp(18px,2.4vw,24px);font-weight:700}
+.friend{border:none;background:#fff;border-radius:50%;width:clamp(54px,8vmin,70px);height:clamp(54px,8vmin,70px);font-size:clamp(30px,5vmin,42px);box-shadow:var(--shadow)}
+.friend.sel{outline:5px solid var(--orange)}
+.shop{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(150px,20vw,200px),1fr));gap:clamp(10px,1.8vw,18px);padding:10px clamp(12px,3vw,32px) 28px;max-width:1100px;width:100%;margin:0 auto}
+.prod{background:#fff;border-radius:22px;box-shadow:var(--shadow);padding:12px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;position:relative}
+.prod .pic{font-size:clamp(54px,9vmin,80px);line-height:1.1}
+.prod .pn{font-size:clamp(18px,2.2vw,22px);font-weight:800}
+.prod .price{font-size:clamp(20px,2.6vw,26px);font-weight:800}
+.prod .own{position:absolute;top:8px;right:10px;background:var(--green);color:#fff;border-radius:999px;font-size:15px;font-weight:800;padding:2px 10px}
+.buy{border:none;border-radius:16px;background:var(--orange);color:#fff;font-weight:800;font-size:clamp(18px,2.3vw,22px);padding:10px 14px;width:100%;box-shadow:0 4px 0 #d07a26}
+.buy:disabled{background:#e4e8f0;color:var(--muted);box-shadow:none}
+.prod.ridecard .buy{background:var(--purple);box-shadow:0 4px 0 #7356b8}
+.prod.ridecard .buy:disabled{background:#e4e8f0;box-shadow:none}
+.goPark{display:none;font-size:clamp(18px,2.4vw,24px);border-radius:999px;padding:12px 22px;align-items:center}
+.goPark.show{display:inline-flex}
+
+/* Oma puisto */
+.park-main-wrap{display:flex;justify-content:center;padding:4px 14px}
+#parkMain{width:min(96vw,calc((100dvh - 330px) * 1.6));min-width:280px}
+.inv{margin:12px auto calc(16px + env(safe-area-inset-bottom));width:min(96vw,1100px);background:#fff;border-radius:22px;box-shadow:var(--shadow);padding:10px 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-height:96px;border:4px solid transparent}
+.inv.drop{border-color:var(--green)}
+.inv .lbl{font-size:clamp(20px,2.6vw,26px);font-weight:800}
+.inv-items{display:flex;gap:10px;flex-wrap:wrap;flex:1}
+.invitem{position:relative;font-size:clamp(44px,7vmin,60px);line-height:1;background:#f6f8fc;border-radius:18px;padding:8px;touch-action:none;cursor:grab;border:3px solid #e2e8f3}
+.invitem.sel{border-color:var(--blue);background:#e3f2fd;transform:scale(1.08)}
+.invitem .cnt{position:absolute;bottom:-6px;right:-6px;background:var(--ink);color:#fff;border-radius:999px;font-size:15px;font-weight:800;min-width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif}
+.inv-empty{display:flex;align-items:center;gap:12px;font-size:clamp(17px,2.2vw,22px);color:var(--muted);flex:1;flex-wrap:wrap}
+.small-btn{border:none;border-radius:14px;background:var(--orange);color:#fff;font-weight:800;font-size:18px;padding:10px 16px}
+.small-btn.blue{background:var(--blue)}
+#returnBtn{display:none}
+#returnBtn.show{display:inline-block}
+
+/* Laitekyyti */
+.ride-scene{flex:1;display:flex;align-items:center;justify-content:center;padding:6px 14px}
+.ride-scene svg{width:min(96vw,calc((100dvh - 290px) * 1.333));min-width:280px;height:auto;border-radius:26px;box-shadow:var(--shadow);background:#9fd8ff}
+#rideBtns{visibility:hidden;padding-bottom:calc(18px + env(safe-area-inset-bottom))}
+#rideBtns.show{visibility:visible;animation:pop .35s}
+.rs-wheel{transform-box:view-box;transform-origin:400px 270px;animation:spin 9s linear infinite}
+.rs-gondola{transform-box:fill-box;transform-origin:50% 0;animation:spin 9s linear infinite reverse}
+.rs-bob{transform-box:fill-box;transform-origin:center;animation:bob 1s ease-in-out infinite}
+.scoop{transform-box:fill-box;transform-origin:center;animation:eat .6s ease-in forwards}
+.s1{animation-delay:1.8s}.s2{animation-delay:3.6s}.s3{animation-delay:5.4s}
+.nam{opacity:0;transform-box:fill-box;animation:namPop 1.3s forwards}
+.n1{animation-delay:1.8s}.n2{animation-delay:3.6s}.n3{animation-delay:5.4s}
+.fin{opacity:0;animation:fadeIn .6s 7s forwards}
+.hui{opacity:0;animation:namPop 1.4s forwards}
+.h1{animation-delay:.9s}.h2{animation-delay:3.1s}.h3{animation-delay:6.9s}
+
+/* Asetukset */
+.modal-bg{position:fixed;inset:0;background:rgba(30,35,55,.45);display:none;align-items:center;justify-content:center;padding:16px;z-index:40}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:26px;max-width:640px;width:100%;max-height:92vh;overflow:auto;padding:22px 24px;box-shadow:0 20px 50px rgba(0,0,0,.25);user-select:text;-webkit-user-select:text}
+.modal h2{margin:0 0 4px;font-size:28px}
+.modal .lead{color:var(--muted);margin:0 0 14px;font-size:15px}
+.row{padding:10px 0;border-top:1px solid #eef1f6}
+.row label{display:block;font-weight:700;margin-bottom:8px;font-size:17px}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg button{border:2px solid #d5dcea;background:#f6f8fc;border-radius:14px;padding:10px 16px;font-size:17px;min-width:64px}
+.seg button.sel{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:700}
+.voice-note,.stats{font-size:15px;color:var(--muted);margin-top:8px;line-height:1.5}
+.modal-actions{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn-plain{border:2px solid #d5dcea;background:#fff;border-radius:14px;padding:10px 16px;font-size:16px}
+.btn-done{border:none;background:var(--green);color:#fff;border-radius:14px;padding:12px 26px;font-size:18px;font-weight:800}
+
+/* Animaatiot */
+.conf{position:fixed;pointer-events:none;font-size:30px;z-index:50;animation:burst 1.1s ease-out forwards}
+@keyframes burst{to{transform:translate(var(--dx),var(--dy)) rotate(200deg);opacity:0}}
+@keyframes hop{0%,100%{transform:translateY(0)}30%{transform:translateY(-22px) rotate(-6deg)}60%{transform:translateY(0) rotate(4deg)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+@keyframes pop{from{transform:scale(.6)}to{transform:scale(1)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+@keyframes wob{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-6px) rotate(-3deg)}}
+@keyframes glow{0%,100%{box-shadow:var(--shadow)}50%{box-shadow:0 0 0 8px #ffd84d,var(--shadow)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes drift{from{transform:translateX(-60px)}to{transform:translateX(80px)}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+@keyframes flap{from{transform:skewY(-6deg)}to{transform:skewY(6deg)}}
+@keyframes eat{to{transform:scale(0);opacity:0}}
+@keyframes namPop{0%{opacity:0;transform:translateY(10px)}25%{opacity:1;transform:translateY(0)}75%{opacity:1}100%{opacity:0;transform:translateY(-30px)}}
+@keyframes fadeIn{to{opacity:1}}
+/* Rauhallinen tila: ostetut laitekyydit liikkuvat silti */
+body.calm *:not(.ride-scene, .ride-scene *),body.calm *:not(.ride-scene, .ride-scene *)::before,body.calm *:not(.ride-scene, .ride-scene *)::after{animation:none!important;transition:none!important}
+@media (prefers-reduced-motion:reduce){*:not(.ride-scene, .ride-scene *){animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ALOITUSKUVA -->
+<section class="screen active" id="splash">
+  <div class="awning"><div class="stripes"></div><div class="scallops"></div></div>
+  <div class="splash">
+    <h1 class="welcome" id="welcome">Tervetuloa matikkapuistoon!</h1>
+    <p class="sub">Täällä huvipuistossa lasketaan! 🎟️</p>
+    <div class="park" id="splashPark"></div>
+    <div class="splash-btns">
+      <button class="icon-btn" id="splashSpeak" aria-label="Kuuntele">🔊</button>
+      <button class="big-btn primary" id="startBtn">Aloita ▶</button>
+    </div>
+  </div>
+</section>
+
+<!-- KOTI -->
+<section class="screen grassy" id="home">
+  <div class="awning"><div class="stripes"></div><div class="scallops"></div></div>
+  <header class="home-head">
+    <h1>🎪 Matikkapuisto</h1>
+    <div class="head-right">
+      <div class="wallet" id="homeWallet">🎟️ 0</div>
+      <button class="gear" id="gearBtn" aria-label="Opettajan asetukset"><span>⚙️</span>Opettajalle</button>
+    </div>
+  </header>
+  <div class="stations" id="stations"></div>
+  <div class="home-extra">
+    <button class="extra kiosk-btn" id="kioskBtn"></button>
+    <button class="extra park-btn" id="parkBtn">
+      <span class="ic">🏞️</span><span class="tx"><span class="nm">Oma puisto</span><span class="ds">Koristele omaa huvipuistoasi</span></span>
+    </button>
+  </div>
+</section>
+
+<!-- PELI -->
+<section class="screen grassy" id="game">
+  <div class="awning"><div class="stripes"></div><div class="scallops"></div></div>
+  <div class="topbar">
+    <button class="icon-btn" id="homeBtn" aria-label="Takaisin">🏠</button>
+    <div class="progress" id="progress"></div>
+    <button class="icon-btn" id="speakBtn" aria-label="Kuuntele uudelleen">🔊</button>
+  </div>
+  <div class="host"><div class="host-face" id="hostFace">🐻</div><div class="bubble" id="bubble"></div></div>
+  <div class="task" id="task"></div>
+  <div class="answers" id="answers"></div>
+  <div class="next-wrap"><button class="next" id="nextBtn">Seuraava ▶</button></div>
+</section>
+
+<!-- LOPPU -->
+<section class="screen grassy" id="end">
+  <div class="awning"><div class="stripes"></div><div class="scallops"></div></div>
+  <div class="end">
+    <div class="host-face" id="endHost">🐻</div>
+    <h2>Hienoa työtä!</h2>
+    <div class="tix" id="endTix"></div>
+    <div class="total" id="endTotal"></div>
+    <div class="unlock" id="endUnlock" hidden>🎉 Kioski aukesi! Nyt voit ostaa lipuilla. 🛍️</div>
+    <div class="end-btns">
+      <button class="big-btn primary" id="againBtn">🔁 Uudestaan</button>
+      <button class="big-btn" id="endHomeBtn">🏠 Takaisin</button>
+    </div>
+  </div>
+</section>
+
+<!-- KIOSKI -->
+<section class="screen" id="kiosk">
+  <div class="awning kiosk-aw"><div class="stripes"></div><div class="scallops"></div></div>
+  <div class="topbar">
+    <button class="icon-btn" id="kioskHome" aria-label="Takaisin">🏠</button>
+    <div class="title">🛍️ Kioski</div>
+    <div class="wallet" id="kioskWallet">🎟️ 0</div>
+  </div>
+  <div class="host"><div class="host-face" id="seller">🐷</div><div class="bubble" id="kioskBubble"></div></div>
+  <div class="tabs">
+    <button class="tab" data-tab="items">🧸 Tavarat</button>
+    <button class="tab" data-tab="rides">🎡 Laitteet</button>
+    <button class="small-btn blue goPark" id="goPark">🏞️ Vie puistoon</button>
+  </div>
+  <div class="friends" id="friends"></div>
+  <div class="shop" id="shop"></div>
+</section>
+
+<!-- OMA PUISTO -->
+<section class="screen" id="parkScreen">
+  <div class="awning"><div class="stripes"></div><div class="scallops"></div></div>
+  <div class="topbar">
+    <button class="icon-btn" id="parkHome" aria-label="Takaisin">🏠</button>
+    <div class="bubble" id="parkBubble" style="flex:1;max-width:none;font-size:clamp(17px,2.6vw,26px)"></div>
+    <button class="icon-btn" id="parkSpeak" aria-label="Kuuntele">🔊</button>
+  </div>
+  <div class="park-main-wrap"><div class="park" id="parkMain"></div></div>
+  <div class="inv" id="invBar">
+    <span class="lbl">🎒 Reppu</span>
+    <div class="inv-items" id="invItems"></div>
+    <div class="inv-empty" id="invEmpty">Reppu on tyhjä. Osta tavaroita kioskista lipuilla! <button class="small-btn" id="invToKiosk">🛍️ Kioskiin</button></div>
+    <button class="small-btn blue" id="returnBtn">↩️ Takaisin reppuun</button>
+  </div>
+</section>
+
+<!-- LAITEKYYTI -->
+<section class="screen" id="rideScreen">
+  <div class="topbar">
+    <button class="icon-btn" id="rideBack" aria-label="Takaisin kioskiin">🛍️</button>
+    <div class="bubble" id="rideBubble" style="flex:1;max-width:none"></div>
+  </div>
+  <div class="ride-scene" id="rideScene"></div>
+  <div class="end-btns" id="rideBtns">
+    <button class="big-btn primary" id="rideAgain">🔁 Uudestaan</button>
+    <button class="big-btn" id="rideKiosk">🛍️ Kioskiin</button>
+  </div>
+</section>
+
+<!-- ASETUKSET -->
+<div class="modal-bg" id="settings" role="dialog" aria-modal="true" aria-labelledby="setTitle">
+  <div class="modal">
+    <h2 id="setTitle">⚙️ Opettajan asetukset</h2>
+    <p class="lead">Asetukset, liput ja oma puisto tallentuvat vain tälle laitteelle ja tähän selaimeen.</p>
+    <div id="setRows"></div>
+    <div class="row">
+      <button class="btn-plain" id="testVoice">🔊 Testaa ääni</button>
+      <div class="voice-note" id="voiceNote"></div>
+    </div>
+    <div class="row"><label>Tilastot tällä laitteella</label><div class="stats" id="stats"></div></div>
+    <div class="modal-actions">
+      <button class="btn-plain" id="resetBtn">Nollaa liput ja puisto</button>
+      <button class="btn-done" id="closeSet">Valmis</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+
+/* ================= Sisältö ================= */
+const NUM = ['nolla','yksi','kaksi','kolme','neljä','viisi','kuusi','seitsemän','kahdeksan','yhdeksän','kymmenen',
+  'yksitoista','kaksitoista','kolmetoista','neljätoista','viisitoista','kuusitoista','seitsemäntoista','kahdeksantoista','yhdeksäntoista','kaksikymmentä'];
+const numWord = n => n <= 20 ? NUM[n] : String(n);
+const ticketsWord = n => n === 1 ? 'yksi lippu' : `${numWord(n)} lippua`;
+const OBJ = [
+  {e:'🎈', n:'ilmapallo', p:'ilmapalloa', gone:'lensi pois'},
+  {e:'🍭', n:'tikkari',   p:'tikkaria',   gone:'syötiin'},
+  {e:'🦆', n:'ankka',     p:'ankkaa',     gone:'ui pois'},
+  {e:'⭐', n:'tähti',     p:'tähteä',     gone:'katosi'},
+  {e:'🍦', n:'jäätelö',   p:'jäätelöä',   gone:'syötiin'},
+  {e:'🧸', n:'nalle',     p:'nallea',     gone:'vietiin pois'}
+];
+const STATIONS = {
+  count:  {name:'Karuselli',     emoji:'🎠', skill:'Montako?',         host:'🐻', color:'var(--red)'},
+  listen: {name:'Maailmanpyörä', emoji:'🎡', skill:'Kuuntele ja etsi', host:'🐰', color:'var(--blue)'},
+  seq:    {name:'Vuoristorata',  emoji:'🎢', skill:'Lukujono',         host:'🦊', color:'var(--purple)'},
+  calc:   {name:'Ilmapallokoju', emoji:'🎈', skill:'Laskut',           host:'🐸', color:'var(--green)'}
+};
+const PRAISE = ['Oikein!','Hienoa!','Mahtavaa!','Loistavaa!','Juuri niin!','Upeaa!'];
+const RIDERS = ['🐻','🐰','🐸','🐼','🐯','🐨','🐷','🐵'];
+const FRIENDS = ['🐰','🐻','🦊','🐸','🐼','🐯','🐨','🐷'];
+
+const HATTARA = `<svg class="isvg" viewBox="0 0 100 100" aria-hidden="true"><line x1="50" y1="58" x2="50" y2="97" stroke="#d9b27c" stroke-width="7" stroke-linecap="round"/><g fill="#f9a8d4"><circle cx="34" cy="36" r="20"/><circle cx="62" cy="30" r="22"/><circle cx="50" cy="50" r="22"/><circle cx="30" cy="54" r="14"/><circle cx="71" cy="51" r="16"/></g><g fill="#fdd5e9"><circle cx="41" cy="28" r="8"/><circle cx="64" cy="22" r="7"/></g></svg>`;
+const ITEMS = [
+  {id:'pallo',    e:'🎈', name:'Ilmapallo',     acc:'ilmapallon',     price:2},
+  {id:'tikkari',  e:'🍭', name:'Tikkari',       acc:'tikkarin',       price:2},
+  {id:'kukka',    e:'🌻', name:'Auringonkukka', acc:'auringonkukan',  price:2},
+  {id:'jaatelo',  e:'🍦', name:'Jäätelö',       acc:'jäätelön',       price:3},
+  {id:'popcorn',  e:'🍿', name:'Popcorn',       acc:'popcornin',      price:3},
+  {id:'jojo',     e:'🪀', name:'Jojo',          acc:'jojon',          price:4},
+  {id:'hattara',  svg:HATTARA, name:'Hattara',  acc:'hattaran',       price:5},
+  {id:'leija',    e:'🪁', name:'Leija',         acc:'leijan',         price:5},
+  {id:'nalle',    e:'🧸', name:'Nalle',         acc:'nallen',         price:6},
+  {id:'koira',    e:'🐶', name:'Koira',         acc:'koiran',         price:7},
+  {id:'robotti',  e:'🤖', name:'Robotti',       acc:'robotin',        price:8},
+  {id:'ilotulitus',e:'🎆',name:'Ilotulitus',    acc:'ilotulituksen',  price:8},
+  {id:'kruunu',   e:'👑', name:'Kruunu',        acc:'kruunun',        price:10},
+  {id:'yksisarvinen',e:'🦄',name:'Yksisarvinen',acc:'yksisarvisen',   price:10}
+];
+const ITEM_BY_ID = Object.fromEntries(ITEMS.map(i => [i.id, i]));
+const icon = it => it.svg || it.e;
+const RIDES = [
+  {id:'karuselli',      e:'🎠', name:'Karuselli',      price:5, say:'Karuselli pyörii! Hihhei!', dur:9000},
+  {id:'maailmanpyora',  e:'🎡', name:'Maailmanpyörä',  price:5, say:'Maailmanpyörä nousee korkealle! Näkyykö sinne asti?', dur:10000},
+  {id:'vuoristorata',   e:'🎢', name:'Vuoristorata',   price:6, say:'Vuoristorata lähtee! Hui hui!', dur:9500},
+  {id:'jaatelohetki',   e:'🍦', name:'Jäätelöhetki',   price:4, say:'Jäätelöhetki! Nam nam!', dur:8000}
+];
+
+/* ================= Tallennus (vain tälle laitteelle) ================= */
+const KEY = 'huvipuistoMatikka.v1';
+const DEFAULTS = {max:10, options:3, rounds:5, ops:'both', backwards:false, speech:true, calm:false, kioskAt:30};
+const store = {settings:{...DEFAULTS}, tickets:{count:0, listen:0, seq:0, calc:0}, spent:0, kioskOpen:false, inv:{}, placed:[], friend:'🐰'};
+try {
+  const s = JSON.parse(localStorage.getItem(KEY));
+  if (s){
+    Object.assign(store.settings, s.settings || {});
+    Object.assign(store.tickets, s.tickets || {});
+    if (typeof s.spent === 'number') store.spent = s.spent;
+    store.kioskOpen = !!s.kioskOpen;
+    if (s.inv && typeof s.inv === 'object') store.inv = s.inv;
+    if (Array.isArray(s.placed)) store.placed = s.placed.filter(p => ITEM_BY_ID[p.id]);
+    if (s.friend) store.friend = s.friend;
+  }
+} catch (e) {}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} }
+const earnedTotal = () => Object.values(store.tickets).reduce((a,b) => a+b, 0);
+const wallet = () => Math.max(0, earnedTotal() - store.spent);
+function kioskIsOpen(){
+  if (!store.kioskOpen && earnedTotal() >= store.settings.kioskAt){ store.kioskOpen = true; save(); }
+  return store.kioskOpen;
+}
+
+/* ================= Apurit ================= */
+const rand = (a,b) => a + Math.floor(Math.random()*(b-a+1));
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const shuffle = a => { for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+const qty = (n,o) => NUM[n] + ' ' + (n===1 ? o.n : o.p);
+let lastN = -1;
+function freshN(min,max){ let n, t=0; do { n=rand(min,max); t++; } while (n===lastN && max>min && t<10); lastN=n; return n; }
+function makeOptions(t,min,max,k){
+  const s = new Set([t]); let tries = 0;
+  while (s.size<k && tries<200){ tries++; const v = t + rand(1,3)*(Math.random()<.5?-1:1); if (v>=min && v<=max) s.add(v); }
+  for (let v=min; s.size<k && v<=max; v++) s.add(v);
+  return shuffle([...s]);
+}
+function fsFor(total, scale=1){
+  const base = total<=5 ? 'clamp(44px, 11vmin, 104px)' : total<=10 ? 'clamp(36px, 8.5vmin, 84px)' : 'clamp(28px, 6.2vmin, 62px)';
+  return scale===1 ? base : `calc(${base} * ${scale})`;
+}
+let timers = [];
+const later = (fn,ms) => timers.push(setTimeout(fn,ms));
+const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
+const reduced = () => store.settings.calm || matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ================= Puhe ================= */
+const hasSpeech = 'speechSynthesis' in window;
+let fiVoice = null;
+function loadVoices(){
+  if (!hasSpeech) return;
+  const v = speechSynthesis.getVoices();
+  fiVoice = v.find(x => /^fi/i.test(x.lang) && /natural|online/i.test(x.name)) || v.find(x => /^fi/i.test(x.lang)) || null;
+}
+if (hasSpeech){ loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
+function say(text){
+  if (!store.settings.speech || !hasSpeech) return;
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'fi-FI'; if (fiVoice) u.voice = fiVoice;
+    u.rate = .85; u.pitch = 1.05;
+    speechSynthesis.speak(u);
+  } catch (e) {}
+}
+function stopSpeech(){ if (hasSpeech) try { speechSynthesis.cancel(); } catch(e){} }
+
+/* ================= Näkymät ================= */
+function show(id){
+  clearTimers();
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id===id));
+  // piirretään animoitu puisto vain näkyvään näkymään
+  if (id !== 'splash') $('#splashPark').innerHTML = '';
+  if (id !== 'parkScreen') $('#parkMain').innerHTML = '';
+  if (id !== 'rideScreen') $('#rideScene').innerHTML = '';
+  window.scrollTo(0,0);
+}
+function applyCalm(){ document.body.classList.toggle('calm', !!store.settings.calm); }
+function confetti(anchor){
+  if (reduced()) return;
+  const r = anchor ? anchor.getBoundingClientRect() : {left:innerWidth/2, top:innerHeight/2.5, width:0, height:0};
+  for (let i=0;i<14;i++){
+    const s = document.createElement('span'); s.className='conf';
+    s.textContent = pick(['🎉','✨','⭐','🎈','🎟️']);
+    s.style.left = (r.left + r.width/2) + 'px'; s.style.top = (r.top + r.height/2) + 'px';
+    s.style.setProperty('--dx', rand(-180,180)+'px'); s.style.setProperty('--dy', rand(-240,-60)+'px');
+    document.body.appendChild(s); setTimeout(() => s.remove(), 1200);
+  }
+}
+
+/* ================= Huvipuistomaisema (SVG) ================= */
+function cubicPt(p0,p1,p2,p3,t){ const u=1-t; return [
+  u*u*u*p0[0]+3*u*u*t*p1[0]+3*u*t*t*p2[0]+t*t*t*p3[0],
+  u*u*u*p0[1]+3*u*u*t*p1[1]+3*u*t*t*p2[1]+t*t*t*p3[1]]; }
+function parkSVG(uid){
+  const C = ['#ef5b5b','#ffc94a','#4aa3df','#3dbb7a','#9b7be0','#f78fb3','#ff9f43','#1abc9c'];
+  // Viirinauha
+  let bunting = '<path d="M0 30 Q 800 170 1600 30" fill="none" stroke="#7a5c3e" stroke-width="3"/>';
+  for (let i=1;i<24;i++){
+    const t=i/24, x=1600*t, y=(1-t)*(1-t)*30+2*(1-t)*t*170+t*t*30;
+    bunting += `<polygon points="${x-18},${y} ${x+18},${y} ${x},${y+38}" fill="${C[i%8]}"/>`;
+  }
+  // Maailmanpyörä
+  const wx=280, wy=390, R=200; let spokes='', gond='';
+  for (let i=0;i<8;i++){
+    const a=i*Math.PI/4, x=wx+R*Math.cos(a), y=wy+R*Math.sin(a);
+    spokes += `<line x1="${wx}" y1="${wy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#fff" stroke-width="6"/>`;
+    gond += `<g transform="translate(${x.toFixed(1)},${y.toFixed(1)})"><g class="gondola"><line x1="0" y1="0" x2="0" y2="10" stroke="#555" stroke-width="4"/><rect x="-24" y="8" width="48" height="36" rx="10" fill="${C[i]}"/><rect x="-16" y="14" width="32" height="12" rx="4" fill="#dff3ff"/></g></g>`;
+  }
+  // Vuoristorata
+  const segs = [[[560,640],[610,380],[700,330],[760,430]],[[760,430],[810,520],[850,530],[900,430]],[[900,430],[950,320],[1040,320],[1090,640]]];
+  const rcPath = 'M 560 640 C 610 380 700 330 760 430 C 810 520 850 530 900 430 C 950 320 1040 320 1090 640';
+  let supports='';
+  segs.forEach(s => [.2,.4,.6,.8].forEach(t => { const [x,y]=cubicPt(...s,t); supports += `<line x1="${x.toFixed(0)}" y1="${y.toFixed(0)}" x2="${x.toFixed(0)}" y2="660" stroke="#c9b08f" stroke-width="7"/>`; }));
+  // Karusellin katto
+  let canopy=''; const cxk=1340;
+  for (let i=0;i<8;i++){ const x0=1180+i*40, x1=x0+40; canopy += `<polygon points="${cxk},420 ${x0},520 ${x1},520" fill="${i%2?'#fff':'#ef5b5b'}"/>`; }
+  for (let i=0;i<8;i++){ canopy += `<circle cx="${1200+i*40}" cy="520" r="20" fill="${i%2?'#fff':'#ef5b5b'}"/>`; }
+  // Teltan raidat
+  let tent=''; for (let i=0;i<6;i++){ tent += `<rect x="${700+i*35}" y="520" width="35" height="140" fill="${i%2?'#fff':'#9b7be0'}"/>`; }
+  return `<svg viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <defs>
+    <linearGradient id="sky${uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd0ff"/><stop offset="1" stop-color="#e8f7ff"/></linearGradient>
+    <linearGradient id="grass${uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#93d86f"/><stop offset="1" stop-color="#62ba4c"/></linearGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#sky${uid})"/>
+  <g transform="translate(1460,150)">
+    <g class="sunrays">${Array.from({length:12},(_,i)=>`<line x1="0" y1="-78" x2="0" y2="-104" stroke="#ffd34d" stroke-width="10" stroke-linecap="round" transform="rotate(${i*30})"/>`).join('')}</g>
+    <circle r="64" fill="#ffd34d"/><circle cx="-20" cy="-10" r="7" fill="#7a5200"/><circle cx="20" cy="-10" r="7" fill="#7a5200"/>
+    <path d="M -24 16 Q 0 38 24 16" fill="none" stroke="#7a5200" stroke-width="6" stroke-linecap="round"/>
+  </g>
+  <g class="cloud"><g fill="#fff" opacity=".95"><ellipse cx="560" cy="150" rx="90" ry="40"/><ellipse cx="620" cy="125" rx="70" ry="45"/><ellipse cx="500" cy="135" rx="55" ry="35"/></g></g>
+  <g class="cloud c2"><g fill="#fff" opacity=".9"><ellipse cx="1080" cy="220" rx="80" ry="34"/><ellipse cx="1130" cy="200" rx="60" ry="38"/></g></g>
+  ${bunting}
+  <path d="M0 650 Q 260 520 560 610 T 1120 590 T 1600 600 V1000 H0Z" fill="#b9e7a1"/>
+  <g><rect x="1505" y="560" width="14" height="70" fill="#8a6d4e"/><circle cx="1512" cy="545" r="44" fill="#57b14a"/></g>
+  <g><rect x="563" y="575" width="12" height="60" fill="#8a6d4e"/><circle cx="569" cy="560" r="36" fill="#4ea843"/></g>
+  <!-- maailmanpyörä -->
+  <polygon points="${wx},${wy} ${wx-110},670 ${wx-80},670" fill="#6c7a89"/>
+  <polygon points="${wx},${wy} ${wx+110},670 ${wx+80},670" fill="#6c7a89"/>
+  <g class="wheel" style="transform-origin:${wx}px ${wy}px">
+    <circle cx="${wx}" cy="${wy}" r="${R}" fill="none" stroke="#fff" stroke-width="12"/>
+    <circle cx="${wx}" cy="${wy}" r="${R-30}" fill="none" stroke="#f78fb3" stroke-width="6"/>
+    ${spokes}${gond}
+  </g>
+  <circle cx="${wx}" cy="${wy}" r="22" fill="#ffc94a" stroke="#fff" stroke-width="6"/>
+  <!-- vuoristorata -->
+  ${supports}
+  <path d="${rcPath}" fill="none" stroke="#e14d6b" stroke-width="14" stroke-linecap="round"/>
+  <path d="${rcPath}" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="10 14"/>
+  <g>
+    <animateMotion dur="7s" repeatCount="indefinite" rotate="auto" path="${rcPath}"/>
+    <rect x="-26" y="-30" width="52" height="24" rx="7" fill="#ffc94a" stroke="#e0a800" stroke-width="3"/>
+    <circle cx="-14" cy="-4" r="7" fill="#444"/><circle cx="14" cy="-4" r="7" fill="#444"/>
+    <text x="0" y="-28" font-size="34" text-anchor="middle">🐵</text>
+  </g>
+  <!-- sirkusteltta -->
+  <g>${tent}<polygon points="680,530 800,410 920,530" fill="#ef5b5b"/><polygon points="760,530 800,470 840,530" fill="#fff" opacity=".35"/>
+    <path d="M 770 660 Q 800 590 830 660 Z" fill="#5b3a29"/>
+    <line x1="800" y1="410" x2="800" y2="360" stroke="#7a5c3e" stroke-width="5"/>
+    <polygon class="flag" points="800,360 850,372 800,386" fill="#ffc94a"/></g>
+  <!-- ilmapallot -->
+  <g class="bobsvg"><line x1="960" y1="560" x2="960" y2="660" stroke="#666" stroke-width="2"/><ellipse cx="960" cy="535" rx="26" ry="32" fill="#4aa3df"/></g>
+  <g class="bobsvg d1"><line x1="1000" y1="540" x2="985" y2="660" stroke="#666" stroke-width="2"/><ellipse cx="1000" cy="515" rx="26" ry="32" fill="#ffc94a"/></g>
+  <g class="bobsvg d2"><line x1="1040" y1="565" x2="1005" y2="660" stroke="#666" stroke-width="2"/><ellipse cx="1040" cy="540" rx="26" ry="32" fill="#3dbb7a"/></g>
+  <!-- karuselli -->
+  <rect x="${cxk-8}" y="430" width="16" height="200" fill="#ffc94a"/>
+  ${[1230,1340,1450].map((x,i)=>`<rect x="${x-3}" y="520" width="6" height="110" fill="#e0a800"/><text class="bobsvg d${i}" x="${x}" y="610" font-size="64" text-anchor="middle">🎠</text>`).join('')}
+  ${canopy}
+  <circle cx="${cxk}" cy="418" r="12" fill="#ffc94a"/>
+  <ellipse cx="${cxk}" cy="640" rx="175" ry="30" fill="#c0392b"/><ellipse cx="${cxk}" cy="632" rx="175" ry="26" fill="#e8705f"/>
+  <!-- maa -->
+  <rect y="660" width="1600" height="340" fill="url(#grass${uid})"/>
+  <path d="M 640 1000 C 700 860 880 800 980 660 L 1060 660 C 990 810 840 880 880 1000 Z" fill="#f3ddb0"/>
+  ${[[120,800],[400,900],[1250,820],[1450,930],[260,960],[1150,960]].map(([x,y])=>`<g fill="#fff"><circle cx="${x}" cy="${y}" r="6"/><circle cx="${x+10}" cy="${y+4}" r="6"/><circle cx="${x+3}" cy="${y+10}" r="6"/></g><circle cx="${x+5}" cy="${y+5}" r="5" fill="#ffc94a"/>`).join('')}
+</svg>`;
+}
+function drawPark(el, uid, editable){
+  el.innerHTML = parkSVG(uid) + '<div class="layer"></div>';
+  const svg = el.querySelector('svg');
+  if (reduced() && svg.pauseAnimations) try { svg.pauseAnimations(); } catch(e){}
+  const layer = el.querySelector('.layer');
+  store.placed.forEach((p,i) => {
+    const it = ITEM_BY_ID[p.id]; if (!it) return;
+    const d = document.createElement('div');
+    d.className = 'pitem' + (editable && i===selPlaced ? ' sel' : '');
+    d.style.left = p.x+'%'; d.style.top = p.y+'%'; d.style.zIndex = 10 + Math.round(p.y);
+    d.innerHTML = icon(it);
+    if (editable){
+      d.setAttribute('role','button'); d.setAttribute('aria-label', it.name);
+      d.addEventListener('pointerdown', e => {
+        e.preventDefault(); d.classList.add('dragging');
+        startDrag(e, icon(it), (x,y) => {
+          const t = dropTarget(x,y);
+          if (t==='inv'){ returnPlaced(i); return; }
+          if (t==='park'){ const q = pct(x,y); p.x=q.x; p.y=q.y; save(); }
+          renderParkScreen();
+        }, () => { selPlaced = selPlaced===i ? -1 : i; selInv = null; renderParkScreen();
+          if (selPlaced>=0) setParkBubble('Raahaa se uuteen paikkaan – tai vie takaisin reppuun.'); });
+      });
+    }
+    layer.appendChild(d);
+  });
+}
+
+/* ================= Raahaus ================= */
+function startDrag(e, html, onDrop, onTap){
+  const sx = e.clientX, sy = e.clientY; let ghost = null;
+  const inv = $('#invBar');
+  const move = ev => {
+    if (!ghost && Math.hypot(ev.clientX-sx, ev.clientY-sy) > 10){
+      ghost = document.createElement('div'); ghost.className='ghost'; ghost.innerHTML = html; document.body.appendChild(ghost);
+    }
+    if (ghost){
+      ghost.style.left = ev.clientX+'px'; ghost.style.top = ev.clientY+'px';
+      inv.classList.toggle('drop', dropTarget(ev.clientX, ev.clientY)==='inv' && !!document.querySelector('.pitem.dragging'));
+    }
+    ev.preventDefault();
+  };
+  const up = ev => {
+    window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up);
+    inv.classList.remove('drop');
+    if (ghost){ ghost.remove(); onDrop(ev.clientX, ev.clientY); }
+    else { document.querySelectorAll('.pitem.dragging').forEach(x => x.classList.remove('dragging')); onTap(); }
+  };
+  window.addEventListener('pointermove', move, {passive:false});
+  window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up);
+}
+const inside = (r,x,y) => x>=r.left && x<=r.right && y>=r.top && y<=r.bottom;
+function dropTarget(x,y){
+  const p = $('#parkMain'), i = $('#invBar');
+  if (p && inside(p.getBoundingClientRect(),x,y)) return 'park';
+  if (i && inside(i.getBoundingClientRect(),x,y)) return 'inv';
+  return null;
+}
+function pct(x,y){
+  const r = $('#parkMain').getBoundingClientRect();
+  return { x: Math.min(96, Math.max(4, (x-r.left)/r.width*100)), y: Math.min(95, Math.max(6, (y-r.top)/r.height*100)) };
+}
+
+/* ================= Aloituskuva ================= */
+function renderSplash(){
+  const w = $('#welcome'); const txt = 'Tervetuloa matikkapuistoon!';
+  const cols = ['#ef5b5b','#ff9f43','#e0a800','#3dbb7a','#4aa3df','#9b7be0','#f78fb3'];
+  let k = 0;
+  w.innerHTML = txt.split(' ').map(word => '<span class="w">' + [...word].map(ch => { const i = k++;
+    return `<span style="color:${cols[i%cols.length]};animation-delay:${(i*0.08).toFixed(2)}s">${ch}</span>`; }).join('') + '</span>').join(' ');
+  w.setAttribute('aria-label', txt);
+  drawPark($('#splashPark'), 's', false);
+  const m = document.createElement('div'); m.className='mascots';
+  m.innerHTML = Object.values(STATIONS).map(s => `<span>${s.host}</span>`).join('');
+  $('#splashPark').appendChild(m);
+}
+const WELCOME = 'Tervetuloa matikkapuistoon! Täällä huvipuistossa lasketaan!';
+$('#splashSpeak').onclick = () => say(WELCOME);
+$('#startBtn').onclick = () => { say('Valitse, mihin mennään!'); goHome(); };
+
+/* ================= Koti ================= */
+function renderHome(){
+  $('#homeWallet').textContent = `🎟️ ${wallet()}`;
+  const wrap = $('#stations'); wrap.innerHTML = '';
+  for (const [k,s] of Object.entries(STATIONS)){
+    const b = document.createElement('button');
+    b.className = 'station'; b.style.setProperty('--c', s.color);
+    b.setAttribute('aria-label', `${s.name}: ${s.skill}`);
+    b.innerHTML = `<span class="big">${s.emoji}</span><span class="name">${s.name}</span><span class="skill">${s.host} ${s.skill}</span>`;
+    b.onclick = () => startGame(k);
+    wrap.appendChild(b);
+  }
+  const kb = $('#kioskBtn'), open = kioskIsOpen();
+  kb.classList.toggle('locked', !open);
+  if (open){
+    kb.innerHTML = `<span class="ic">🛍️</span><span class="tx"><span class="nm">Kioski</span><span class="ds">Osta lipuilla herkkuja ja laitekyytejä!</span></span>`;
+  } else {
+    const need = store.settings.kioskAt, have = Math.min(earnedTotal(), need);
+    kb.innerHTML = `<span class="ic">🔒</span><span class="tx"><span class="nm">Kioski</span><span class="ds">Aukeaa, kun lippuja on ${need}: 🎟️ ${have} / ${need}</span><span class="bar"><i style="width:${(have/need*100).toFixed(0)}%"></i></span></span>`;
+  }
+}
+function goHome(){ stopSpeech(); renderHome(); show('home'); }
+$('#kioskBtn').onclick = () => {
+  if (kioskIsOpen()) openKiosk();
+  else { const need = store.settings.kioskAt, have = earnedTotal();
+    say(`Kioski aukeaa, kun olet kerännyt ${numWord(need)} lippua. Sinulla on ${numWord(have)}. Vielä ${numWord(need-have)} lippua!`); }
+};
+$('#parkBtn').onclick = openPark;
+
+/* ================= Tehtävät ================= */
+function groupEl(n, o, {tap=false, fs}={}){
+  const g = document.createElement('div'); g.className = 'group';
+  const cells = []; const order = [];
+  const refresh = () => {
+    cells.forEach(c => { c.classList.remove('counted'); const b=c.querySelector('.badge'); if (b) b.remove(); });
+    order.forEach((c,i) => { c.classList.add('counted'); const b=document.createElement('span'); b.className='badge'; b.textContent=i+1; c.appendChild(b); });
+  };
+  for (let f=0; f<Math.ceil(n/10); f++){
+    const cnt = Math.min(10, n - f*10);
+    const fr = document.createElement('div'); fr.className = 'frame';
+    fr.style.setProperty('--cols', Math.min(5,cnt));
+    for (let j=0; j<cnt; j++){
+      const c = document.createElement(tap ? 'button' : 'span');
+      c.className = 'cell'; c.textContent = o.e; c.style.fontSize = fs;
+      if (tap){
+        c.type = 'button'; c.setAttribute('aria-label', o.n);
+        c.onclick = () => {
+          const idx = order.indexOf(c);
+          if (idx === -1){ order.push(c); refresh(); say(NUM[order.length]); }
+          else { order.splice(idx,1); refresh(); }
+        };
+      }
+      fr.appendChild(c); cells.push(c);
+    }
+    g.appendChild(fr);
+  }
+  g._cells = cells;
+  return g;
+}
+function stepAlong(els, words){
+  els.forEach(e => e.classList.remove('hl'));
+  words.forEach((w,i) => later(() => { els[i].classList.add('hl'); say(w); }, i*900));
+  later(() => els.forEach(e => e.classList.remove('hl')), words.length*900 + 700);
+}
+const countAlong = cells => stepAlong(cells, cells.map((_,i) => NUM[i+1]));
+function numberAnswers(opts){
+  const a = $('#answers');
+  opts.forEach(v => {
+    const b = document.createElement('button');
+    b.className = 'ans'; b.textContent = v; b.setAttribute('aria-label', NUM[v]);
+    b.onclick = () => answer(b, v);
+    a.appendChild(b);
+  });
+}
+function genCount(){
+  const S = store.settings, o = pick(OBJ), n = freshN(1, S.max); let g;
+  return {
+    answer:n, prompt:`Montako ${o.p}?`, speech:`Montako ${o.p}?`,
+    praise:cap(qty(n,o)), hintText:'Lasketaan yhdessä!',
+    render(){
+      g = groupEl(n, o, {tap:true, fs:fsFor(n)});
+      const tip = document.createElement('div'); tip.className='tip'; tip.textContent='👆 Voit laskea koskettamalla';
+      $('#task').append(g, tip);
+      numberAnswers(makeOptions(n, 1, S.max, S.options));
+    },
+    hint(){ countAlong(g._cells); }
+  };
+}
+function genListen(){
+  const S = store.settings, o = pick(OBJ), n = freshN(1, S.max);
+  const opts = makeOptions(n, 1, S.max, S.options); const cards = [];
+  return {
+    answer:n, prompt:`Etsi <span class="num">${n}</span> ${n===1?o.n:o.p}`, speech:`Etsi ${qty(n,o)}.`,
+    praise:cap(qty(n,o)), hintText:'Kuuntele uudelleen ja katso tarkkaan.',
+    render(){
+      const wrap = document.createElement('div'); wrap.className='cards';
+      wrap.style.setProperty('--n', opts.length===4 ? 2 : opts.length);
+      const scale = opts.length===2 ? .8 : opts.length===3 ? .62 : .55;
+      const fs = fsFor(Math.max(...opts), scale);
+      opts.forEach(v => {
+        const c = document.createElement('button'); c.className='card'; c._v = v;
+        c.setAttribute('aria-label','Ryhmä');
+        c.appendChild(groupEl(v, o, {fs}));
+        c.onclick = () => answer(c, v);
+        wrap.appendChild(c); cards.push(c);
+      });
+      $('#task').appendChild(wrap);
+    },
+    hint(){ say(`Etsi ${qty(n,o)}.`); const c = cards.find(c => c._v===n); if (c) c.classList.add('glow'); }
+  };
+}
+function genSeq(){
+  const S = store.settings, len = S.max<=5 ? 4 : 5;
+  const start = rand(0, S.max-len+1);
+  let seq = Array.from({length:len}, (_,i) => start+i);
+  const back = S.backwards && Math.random()<.5;
+  if (back) seq.reverse();
+  const miss = rand(0, len-1), ans = seq[miss];
+  const riders = shuffle(RIDERS.slice()); const wagons = [];
+  return {
+    answer:ans, prompt:'Mikä luku puuttuu?', speech: back ? 'Lukujono menee taaksepäin. Mikä luku puuttuu?' : 'Mikä luku puuttuu?',
+    praise:`Luku ${ans}`, praiseSay:seq.map(v => NUM[v]).join(', ') + '.', hintText:'Luetaan lukujono yhdessä.',
+    render(){
+      const ride = document.createElement('div'); ride.className='ride';
+      const train = document.createElement('div'); train.className='train';
+      seq.forEach((v,i) => {
+        const car = document.createElement('div'); car.className='car';
+        const r = document.createElement('div'); r.className='rider'; r.textContent = riders[i % riders.length];
+        const w = document.createElement('div'); w.className='wagon' + (i===miss ? ' missing' : '');
+        w.textContent = i===miss ? '?' : v;
+        car.append(r, w); train.appendChild(car); wagons.push(w);
+      });
+      const rail = document.createElement('div'); rail.className='rail';
+      ride.append(train, rail); $('#task').appendChild(ride);
+      numberAnswers(makeOptions(ans, 0, S.max, S.options));
+    },
+    onRight(){ const w = wagons[miss]; w.textContent = ans; w.classList.remove('missing'); },
+    hint(){ stepAlong(wagons, seq.map((v,i) => i===miss ? 'mikä?' : NUM[v])); }
+  };
+}
+function genCalc(){
+  const S = store.settings, o = pick(OBJ);
+  const op = S.ops==='both' ? (Math.random()<.5 ? 'add' : 'sub') : S.ops;
+  let a, b, ans;
+  if (op==='add'){ a = rand(1, S.max-1); b = rand(1, S.max-a); ans = a+b; }
+  else { a = rand(2, S.max); b = rand(1, a); ans = a-b; }
+  const sym = op==='add' ? '+' : '−';
+  let g1, g2, qEl, applyGone = () => {};
+  return {
+    answer:ans,
+    prompt: op==='add' ? 'Montako yhteensä?' : 'Montako jäi?',
+    speech: op==='add' ? `${cap(qty(a,o))} ja ${qty(b,o)}. Montako yhteensä?` : `Oli ${qty(a,o)}. ${cap(NUM[b])} ${o.gone}. Montako jäi?`,
+    praise:`${a} ${sym} ${b} = ${ans}`,
+    praiseSay:`${NUM[a]} ${op==='add' ? 'plus' : 'miinus'} ${NUM[b]} on ${NUM[ans]}.`,
+    hintText: op==='add' ? 'Lasketaan kaikki yhdessä!' : (ans===0 ? 'Katso tarkkaan. Jäikö yhtään?' : 'Lasketaan ne, jotka jäivät!'),
+    render(){
+      const row = document.createElement('div'); row.className='calc';
+      if (op==='add'){
+        const fs = fsFor(a+b > 10 ? 11 : Math.max(a,b,6), a+b > 10 ? .85 : 1);
+        g1 = groupEl(a, o, {fs}); g2 = groupEl(b, o, {fs});
+        const p = document.createElement('div'); p.className='op'; p.textContent='+';
+        row.append(g1, p, g2);
+      } else {
+        g1 = groupEl(a, o, {fs:fsFor(a)}); row.append(g1);
+        const goneCells = g1._cells.slice(a-b);
+        applyGone = () => goneCells.forEach(c => c.classList.add('gone'));
+        later(applyGone, reduced() ? 0 : 1500);
+      }
+      const ex = document.createElement('div'); ex.className='expr';
+      ex.innerHTML = `${a} ${sym} ${b} = <span class="q">?</span>`; qEl = ex.querySelector('.q');
+      $('#task').append(row, ex);
+      numberAnswers(makeOptions(ans, 0, S.max, S.options));
+    },
+    onRight(){ applyGone(); qEl.textContent = ans; },
+    hint(){
+      if (op==='add') countAlong([...g1._cells, ...g2._cells]);
+      else if (ans===0) say('Katso tarkkaan. Jäikö yhtään?');
+      else countAlong(g1._cells.slice(0, ans));
+    }
+  };
+}
+const GEN = {count:genCount, listen:genListen, seq:genSeq, calc:genCalc};
+
+/* ================= Pelin kulku ================= */
+let game = null;
+function startGame(k){
+  stopSpeech();
+  game = {k, i:0, solved:false, misses:0, task:null, earned:0, wasOpen:kioskIsOpen()};
+  const s = STATIONS[k];
+  $('#game').style.setProperty('--c', s.color);
+  $('#end').style.setProperty('--c', s.color);
+  $('#hostFace').textContent = s.host;
+  show('game'); newTask();
+}
+function newTask(){
+  clearTimers();
+  game.solved = false; game.misses = 0;
+  game.task = GEN[game.k]();
+  $('#task').innerHTML = ''; $('#answers').innerHTML = '';
+  $('#nextBtn').classList.remove('show');
+  $('#bubble').innerHTML = game.task.prompt;
+  renderProgress();
+  game.task.render();
+  say(game.task.speech);
+}
+function renderProgress(){
+  const p = $('#progress'); p.innerHTML = '';
+  for (let j=0; j<store.settings.rounds; j++){
+    const d = document.createElement('div');
+    d.className = 'dot' + (j<game.i ? ' done' : '') + (j===game.i && !game.solved ? ' now' : '');
+    p.appendChild(d);
+  }
+}
+function hostHappy(el){ const h = el || $('#hostFace'); h.classList.remove('happy'); void h.offsetWidth; h.classList.add('happy'); }
+function answer(el, v){
+  if (!game || game.solved || el.disabled) return;
+  const t = game.task;
+  if (v === t.answer){
+    game.solved = true; clearTimers();
+    el.classList.add('right');
+    document.querySelectorAll('#game .ans, #game .card').forEach(b => { if (b!==el) b.disabled = true; });
+    if (t.onRight) t.onRight();
+    const p = pick(PRAISE);
+    $('#bubble').innerHTML = `${p} ${t.praise}`;
+    say(`${p} ${t.praiseSay || t.praise}`);
+    hostHappy(); confetti(el);
+    game.earned++; store.tickets[game.k]++; save();
+    game.i++; renderProgress();
+    later(() => $('#nextBtn').classList.add('show'), 500);
+  } else {
+    el.disabled = true; el.classList.add('wrong');
+    game.misses++;
+    if (game.misses >= 2 && t.hint){
+      $('#bubble').innerHTML = t.hintText;
+      say(t.hintText);
+      clearTimers(); later(() => t.hint(), 1600);
+    } else {
+      $('#bubble').innerHTML = 'Melkein! Kokeile uudelleen. 🙂';
+      say('Melkein! Kokeile uudelleen.');
+    }
+  }
+}
+function endScreen(){
+  const s = STATIONS[game.k];
+  show('end');
+  $('#endHost').textContent = s.host;
+  $('#endTix').textContent = '🎟️'.repeat(game.earned);
+  $('#endTotal').textContent = `Sinulla on nyt ${wallet()} lippua.`;
+  const justOpened = !game.wasOpen && kioskIsOpen();
+  $('#endUnlock').hidden = !justOpened;
+  say(`Hienoa työtä! Sait ${numWord(game.earned)} lippua.` + (justOpened ? ' Ja nyt kioski aukesi! Siellä voit ostaa lipuilla.' : ''));
+  if (!reduced()) for (let i=0;i<3;i++) setTimeout(() => confetti(null), i*350);
+}
+$('#homeBtn').onclick = goHome;
+$('#endHomeBtn').onclick = goHome;
+$('#againBtn').onclick = () => startGame(game.k);
+$('#speakBtn').onclick = () => { if (game && game.task) say(game.solved ? (game.task.praiseSay || game.task.praise) : game.task.speech); };
+$('#nextBtn').onclick = () => { if (game.i >= store.settings.rounds) endScreen(); else newTask(); };
+
+/* ================= Kioski ================= */
+let kioskTab = 'items';
+function setKioskBubble(html){ $('#kioskBubble').innerHTML = html; }
+function openKiosk(){
+  stopSpeech(); show('kiosk');
+  $('#goPark').classList.toggle('show', Object.keys(store.inv).length > 0);
+  setKioskBubble(`Hei! Sinulla on <b>${wallet()}</b> 🎟️<br><small>Koske tavaraa, niin kuulet hinnan.</small>`);
+  say(`Hei! Tervetuloa kioskiin. Sinulla on ${ticketsWord(wallet())}. Mitä saisi olla?`);
+  renderKiosk();
+}
+function renderKiosk(){
+  $('#kioskWallet').textContent = `🎟️ ${wallet()}`;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('sel', t.dataset.tab === kioskTab));
+  const fr = $('#friends'), shop = $('#shop'); shop.innerHTML = ''; fr.innerHTML = '';
+  const w = wallet();
+  if (kioskTab === 'rides'){
+    fr.innerHTML = '<span>Kuka lähtee kyytiin?</span>';
+    FRIENDS.forEach(f => {
+      const b = document.createElement('button'); b.className = 'friend' + (store.friend===f ? ' sel' : ''); b.textContent = f;
+      b.onclick = () => { store.friend = f; save(); renderKiosk(); };
+      fr.appendChild(b);
+    });
+  }
+  const list = kioskTab === 'items' ? ITEMS : RIDES;
+  list.forEach(it => {
+    const c = document.createElement('div'); c.className = 'prod' + (kioskTab==='rides' ? ' ridecard' : '');
+    const owned = kioskTab==='items' ? (store.inv[it.id]||0) + store.placed.filter(p => p.id===it.id).length : 0;
+    const can = w >= it.price;
+    c.innerHTML = `${owned ? `<span class="own">${owned} ✓</span>` : ''}<div class="pic">${icon(it)}</div><div class="pn">${it.name}</div><div class="price">🎟️ ${it.price}</div>`;
+    const b = document.createElement('button'); b.className = 'buy'; b.disabled = !can;
+    b.textContent = can ? (kioskTab==='items' ? 'Osta' : 'Kyytiin!') : `Puuttuu ${it.price - w} 🎟️`;
+    b.onclick = e => { e.stopPropagation(); kioskTab==='items' ? buyItem(it, b) : buyRide(it); };
+    c.appendChild(b);
+    c.onclick = () => {
+      const what = kioskTab==='items' ? `${it.name} maksaa` : `${it.name} maksaa`;
+      say(`${what} ${ticketsWord(it.price)}.` + (can ? '' : ` Tarvitset vielä ${ticketsWord(it.price - w)}.`));
+    };
+    shop.appendChild(c);
+  });
+}
+function buyItem(it, btn){
+  const w = wallet(); if (w < it.price) return;
+  store.spent += it.price; store.inv[it.id] = (store.inv[it.id]||0) + 1; save();
+  const left = w - it.price;
+  setKioskBubble(`Ostit ${it.acc}! ${icon(it)}<br><span class="math">${w} − ${it.price} = ${left} 🎟️</span>`);
+  say(`Ostit ${it.acc}! ${cap(numWord(w))} miinus ${numWord(it.price)} on ${numWord(left)}. Sinulle jäi ${ticketsWord(left)}.`);
+  hostHappy($('#seller')); confetti(btn);
+  $('#goPark').classList.add('show');
+  renderKiosk();
+}
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
+  kioskTab = t.dataset.tab; renderKiosk();
+  say(kioskTab==='items' ? 'Tavarat. Voit viedä ne omaan puistoosi.' : 'Laitteet. Valitse kaveri ja laite.');
+});
+$('#kioskHome').onclick = goHome;
+$('#goPark').onclick = openPark;
+
+/* ================= Laitekyydit ================= */
+let currentRide = null;
+function buyRide(r){
+  const w = wallet(); if (w < r.price) return;
+  store.spent += r.price; save();
+  startRide(r);
+}
+function startRide(r){
+  currentRide = r; stopSpeech(); show('rideScreen');
+  $('#rideBtns').classList.remove('show');
+  $('#rideBubble').innerHTML = `${r.e} ${r.name}! <small>🎟️ ${wallet()} jäljellä</small>`;
+  $('#rideScene').innerHTML = rideSVG(r.id, store.friend);
+  say(r.say);
+  later(() => {
+    const again = $('#rideAgain'); again.textContent = `🔁 Uudestaan (🎟️ ${r.price})`; again.disabled = wallet() < r.price;
+    $('#rideBtns').classList.add('show');
+  }, r.dur);
+}
+$('#rideAgain').onclick = () => { if (currentRide) buyRide(currentRide); };
+$('#rideKiosk').onclick = openKiosk;
+$('#rideBack').onclick = openKiosk;
+
+function rideSVG(id, a){
+  const base = `<defs><linearGradient id="rsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd0ff"/><stop offset="1" stop-color="#eaf8ff"/></linearGradient></defs>
+    <rect width="800" height="600" fill="url(#rsky)"/>
+    <g fill="#fff" opacity=".9"><ellipse cx="130" cy="90" rx="70" ry="28"/><ellipse cx="170" cy="72" rx="50" ry="30"/><ellipse cx="660" cy="120" rx="60" ry="24"/></g>
+    <rect y="520" width="800" height="80" fill="#7fcc5c"/>`;
+  const C = ['#ef5b5b','#ffc94a','#4aa3df','#3dbb7a','#9b7be0','#f78fb3','#ff9f43','#1abc9c'];
+  if (id === 'maailmanpyora'){
+    const cx=400, cy=270, R=200; let sp='', g='';
+    for (let i=0;i<8;i++){
+      const ang = -Math.PI/2 + i*Math.PI/4, x = cx+R*Math.cos(ang), y = cy+R*Math.sin(ang);
+      sp += `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#fff" stroke-width="7"/>`;
+      g += `<g transform="translate(${x.toFixed(1)},${y.toFixed(1)})"><g class="rs-gondola"><line x1="0" y1="0" x2="0" y2="10" stroke="#555" stroke-width="5"/>
+        <rect x="-34" y="8" width="68" height="56" rx="14" fill="${C[i]}"/>
+        ${i===4 ? `<text x="0" y="54" font-size="44" text-anchor="middle">${a}</text>` : `<rect x="-24" y="16" width="48" height="18" rx="5" fill="#dff3ff"/>`}</g></g>`;
+    }
+    return `<svg viewBox="0 0 800 600">${base}
+      <polygon points="${cx},${cy} ${cx-130},530 ${cx-95},530" fill="#6c7a89"/><polygon points="${cx},${cy} ${cx+130},530 ${cx+95},530" fill="#6c7a89"/>
+      <g class="rs-wheel"><circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#fff" stroke-width="14"/>
+      <circle cx="${cx}" cy="${cy}" r="${R-34}" fill="none" stroke="#f78fb3" stroke-width="7"/>${sp}${g}</g>
+      <circle cx="${cx}" cy="${cy}" r="26" fill="#ffc94a" stroke="#fff" stroke-width="7"/></svg>`;
+  }
+  if (id === 'karuselli'){
+    const path = 'M 140 440 A 260 55 0 1 0 660 440 A 260 55 0 1 0 140 440';
+    let canopy = '';
+    for (let i=0;i<10;i++){ const x0 = 100+i*60; canopy += `<polygon points="400,60 ${x0},200 ${x0+60},200" fill="${i%2?'#fff':'#ef5b5b'}"/>`; }
+    for (let i=0;i<10;i++) canopy += `<circle cx="${130+i*60}" cy="200" r="30" fill="${i%2?'#fff':'#ef5b5b'}"/>`;
+    const riders = [0,1.5,3,4.5].map((d,i) => `<g><animateMotion path="${path}" dur="6s" begin="-${d}s" repeatCount="indefinite"/>
+      <line x1="0" y1="-250" x2="0" y2="20" stroke="#e0a800" stroke-width="6"/>
+      <g class="rs-bob" style="animation-delay:-${(i*0.25).toFixed(2)}s"><text x="0" y="10" font-size="78" text-anchor="middle">🎠</text>
+      ${i===0 ? `<text x="4" y="-46" font-size="50" text-anchor="middle">${a}</text>` : ''}</g></g>`).join('');
+    return `<svg viewBox="0 0 800 600">${base}
+      <ellipse cx="400" cy="500" rx="330" ry="72" fill="#c0392b"/><ellipse cx="400" cy="488" rx="330" ry="66" fill="#e8705f"/>
+      <rect x="388" y="140" width="24" height="350" fill="#ffc94a"/>
+      ${riders}${canopy}<circle cx="400" cy="58" r="16" fill="#ffc94a"/>
+      <text class="hui h1" x="640" y="300" font-size="44" font-weight="800" fill="#ef5b5b" text-anchor="middle">Hihhei!</text>
+      <text class="hui h2" x="160" y="300" font-size="44" font-weight="800" fill="#9b7be0" text-anchor="middle">Jee!</text></svg>`;
+  }
+  if (id === 'vuoristorata'){
+    const segs = [[[-40,470],[60,470],[110,140],[210,140]],[[210,140],[310,140],[320,470],[420,470]],[[420,470],[500,470],[540,330],[480,290]],
+                  [[480,290],[420,250],[380,350],[450,420]],[[450,420],[510,480],[600,470],[650,360]],[[650,360],[700,260],[760,260],[860,470]]];
+    const path = 'M -40 470 ' + segs.map(s => `C ${s[1].join(' ')} ${s[2].join(' ')} ${s[3].join(' ')}`).join(' ');
+    let sup = '';
+    [segs[0],segs[1],segs[4],segs[5]].forEach(s => [.25,.5,.75].forEach(t => { const [x,y] = cubicPt(...s,t); if (x>0 && x<800) sup += `<line x1="${x.toFixed(0)}" y1="${y.toFixed(0)}" x2="${x.toFixed(0)}" y2="520" stroke="#c9b08f" stroke-width="8"/>`; }));
+    return `<svg viewBox="0 0 800 600">${base}${sup}
+      <path d="${path}" fill="none" stroke="#e14d6b" stroke-width="16" stroke-linecap="round"/>
+      <path d="${path}" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="12 16"/>
+      <g><animateMotion dur="4.5s" repeatCount="2" fill="freeze" rotate="auto" path="${path}"/>
+        <rect x="-38" y="-40" width="76" height="32" rx="10" fill="#ffc94a" stroke="#e0a800" stroke-width="4"/>
+        <circle cx="-22" cy="-6" r="9" fill="#444"/><circle cx="22" cy="-6" r="9" fill="#444"/>
+        <text x="0" y="-36" font-size="46" text-anchor="middle">${a}</text></g>
+      <text class="hui h1" x="210" y="90" font-size="48" font-weight="800" fill="#ef5b5b" text-anchor="middle">Hui!</text>
+      <text class="hui h2" x="560" y="200" font-size="48" font-weight="800" fill="#9b7be0" text-anchor="middle">Jihuu!</text>
+      <text class="hui h3" x="400" y="120" font-size="48" font-weight="800" fill="#3dbb7a" text-anchor="middle">Uudestaan!</text></svg>`;
+  }
+  // jäätelöhetki
+  return `<svg viewBox="0 0 800 600">${base}
+    <g class="rs-bob"><text x="260" y="440" font-size="200" text-anchor="middle">${a}</text></g>
+    <polygon points="510,330 630,330 570,510" fill="#e0a96d"/>
+    <path d="M 525 360 L 600 450 M 615 360 L 545 450 M 540 330 L 590 470 M 600 330 L 555 470" stroke="#c4884a" stroke-width="4"/>
+    <circle class="scoop s3" cx="570" cy="300" r="56" fill="#f78fb3"/>
+    <circle class="scoop s2" cx="570" cy="236" r="50" fill="#fff3c4"/>
+    <g class="scoop s1"><circle cx="570" cy="180" r="46" fill="#8b5a3c"/><circle cx="572" cy="128" r="14" fill="#e53935"/></g>
+    <text class="nam n1" x="400" y="210" font-size="50" font-weight="800" fill="#ef5b5b" text-anchor="middle">Nam!</text>
+    <text class="nam n2" x="410" y="250" font-size="50" font-weight="800" fill="#9b7be0" text-anchor="middle">Nam nam!</text>
+    <text class="nam n3" x="400" y="210" font-size="50" font-weight="800" fill="#3dbb7a" text-anchor="middle">Herkkua!</text>
+    <text class="fin" x="570" y="320" font-size="110" text-anchor="middle">😋</text></svg>`;
+}
+
+/* ================= Oma puisto ================= */
+let selInv = null, selPlaced = -1;
+const PARK_TIP = 'Raahaa tavara puistoon – tai koske ensin tavaraa ja sitten puistoa.';
+function setParkBubble(t){ $('#parkBubble').textContent = t; }
+function openPark(){
+  stopSpeech(); selInv = null; selPlaced = -1;
+  show('parkScreen'); renderParkScreen();
+  const has = Object.keys(store.inv).length > 0;
+  setParkBubble(has ? PARK_TIP : (store.placed.length ? 'Tämä on sinun puistosi! Voit siirtää tavaroita raahaamalla.' : 'Tämä on sinun puistosi. Osta kioskista tavaroita ja tuo ne tänne!'));
+  say(has ? 'Tämä on sinun oma puistosi. Raahaa tavara puistoon. Tai koske ensin tavaraa ja sitten puistoa.' : $('#parkBubble').textContent);
+}
+function renderParkScreen(){
+  drawPark($('#parkMain'), 'p', true);
+  const bar = $('#invItems'); bar.innerHTML = '';
+  const ids = Object.keys(store.inv).filter(id => store.inv[id] > 0 && ITEM_BY_ID[id]);
+  $('#invEmpty').style.display = ids.length ? 'none' : 'flex';
+  $('#invToKiosk').style.display = kioskIsOpen() ? '' : 'none';
+  ids.forEach(id => {
+    const it = ITEM_BY_ID[id];
+    const b = document.createElement('div');
+    b.className = 'invitem' + (selInv===id ? ' sel' : '');
+    b.setAttribute('role','button'); b.setAttribute('aria-label', it.name);
+    b.innerHTML = icon(it) + (store.inv[id] > 1 ? `<span class="cnt">${store.inv[id]}</span>` : '');
+    b.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      startDrag(e, icon(it), (x,y) => { if (dropTarget(x,y)==='park') placeItem(id, pct(x,y)); },
+        () => { selInv = selInv===id ? null : id; selPlaced = -1; renderParkScreen();
+          if (selInv){ setParkBubble('Koske nyt puistoa siihen kohtaan, mihin haluat sen.'); say('Koske nyt puistoa siihen kohtaan, mihin haluat sen.'); }
+          else setParkBubble(PARK_TIP); });
+    });
+    bar.appendChild(b);
+  });
+  $('#returnBtn').classList.toggle('show', selPlaced >= 0);
+}
+function placeItem(id, q){
+  if (!store.inv[id]) return;
+  store.inv[id]--; if (store.inv[id] <= 0){ delete store.inv[id]; if (selInv===id) selInv = null; }
+  store.placed.push({id, x:+q.x.toFixed(1), y:+q.y.toFixed(1)}); save();
+  selPlaced = -1; renderParkScreen();
+  setParkBubble(Object.keys(store.inv).length ? 'Hienoa! ' + (selInv ? 'Koske puistoa, niin saat lisää.' : PARK_TIP) : 'Hienoa! Puistosi näyttää upealta! 🎉');
+}
+function returnPlaced(i){
+  const p = store.placed.splice(i,1)[0]; if (!p) return;
+  store.inv[p.id] = (store.inv[p.id]||0) + 1; selPlaced = -1; save(); renderParkScreen();
+  setParkBubble('Tavara on taas repussa. 🎒');
+}
+$('#parkMain').addEventListener('click', e => {
+  if (e.target.closest('.pitem')) return;
+  if (selInv) placeItem(selInv, pct(e.clientX, e.clientY));
+  else if (selPlaced >= 0){ selPlaced = -1; renderParkScreen(); setParkBubble(PARK_TIP); }
+});
+$('#returnBtn').onclick = () => { if (selPlaced >= 0) returnPlaced(selPlaced); };
+$('#parkHome').onclick = goHome;
+$('#parkSpeak').onclick = () => say($('#parkBubble').textContent);
+$('#invToKiosk').onclick = openKiosk;
+
+/* ================= Asetukset ================= */
+const SETTING_UI = [
+  {key:'max',       label:'Lukualue',                      opts:[[5,'0–5'],[10,'0–10'],[20,'0–20']]},
+  {key:'options',   label:'Vastausvaihtoehtoja',           opts:[[2,'2'],[3,'3'],[4,'4']]},
+  {key:'rounds',    label:'Tehtäviä yhdellä kierroksella', opts:[[3,'3'],[5,'5'],[8,'8']]},
+  {key:'ops',       label:'Ilmapallokojun laskut',         opts:[['add','Yhteenlasku'],['sub','Vähennyslasku'],['both','Molemmat']]},
+  {key:'backwards', label:'Vuoristorata myös taaksepäin',  opts:[[false,'Ei'],[true,'Kyllä']]},
+  {key:'kioskAt',   label:'Kioski aukeaa, kun lippuja on kerätty', opts:[[10,'10'],[20,'20'],[30,'30'],[50,'50']]},
+  {key:'speech',    label:'Puhe',                          opts:[[true,'Päällä'],[false,'Pois']]},
+  {key:'calm',      label:'Rauhallinen tila (maisema ja palkinnot eivät liiku)', opts:[[false,'Ei'],[true,'Kyllä']]}
+];
+function renderSettings(){
+  const box = $('#setRows'); box.innerHTML = '';
+  SETTING_UI.forEach(s => {
+    const row = document.createElement('div'); row.className='row';
+    row.innerHTML = `<label>${s.label}</label>`;
+    const seg = document.createElement('div'); seg.className='seg';
+    s.opts.forEach(([val,txt]) => {
+      const b = document.createElement('button'); b.textContent = txt;
+      if (store.settings[s.key] === val) b.classList.add('sel');
+      b.onclick = () => { store.settings[s.key] = val; save(); applyCalm(); renderSettings(); };
+      seg.appendChild(b);
+    });
+    row.appendChild(seg); box.appendChild(row);
+  });
+  loadVoices();
+  $('#voiceNote').textContent = !hasSpeech ? 'Tämä selain ei tue puhetta. Tekstit näkyvät silti ruudulla.'
+    : fiVoice ? `Suomenkielinen ääni: ${fiVoice.name}`
+    : 'Suomenkielistä ääntä ei löytynyt. Windows-koneella kokeile Edge-selainta, iPadilla ääni löytyy yleensä valmiina.';
+  $('#stats').innerHTML = Object.entries(STATIONS).map(([k,s]) => `${s.emoji} ${s.name}: ${store.tickets[k]} ratkaistua tehtävää`).join('<br>')
+    + `<br>🎟️ Lippuja kerätty yhteensä ${earnedTotal()}, käytetty ${store.spent}, jäljellä ${wallet()}`
+    + `<br>🛍️ Kioski: ${store.kioskOpen ? 'auki' : 'kiinni'}`;
+}
+let resetArmed = false;
+$('#gearBtn').onclick = () => { resetArmed = false; $('#resetBtn').textContent = 'Nollaa liput ja puisto'; renderSettings(); $('#settings').classList.add('open'); };
+$('#closeSet').onclick = () => { $('#settings').classList.remove('open'); renderHome(); };
+$('#settings').onclick = e => { if (e.target.id === 'settings') $('#closeSet').click(); };
+$('#testVoice').onclick = () => { const was = store.settings.speech; store.settings.speech = true; say('Hei! Tervetuloa matikkapuistoon. Yksi, kaksi, kolme.'); store.settings.speech = was; };
+$('#resetBtn').onclick = () => {
+  if (!resetArmed){ resetArmed = true; $('#resetBtn').textContent = 'Paina uudelleen nollataksesi kaiken'; return; }
+  Object.keys(store.tickets).forEach(k => store.tickets[k] = 0);
+  store.spent = 0; store.kioskOpen = false; store.inv = {}; store.placed = []; save();
+  resetArmed = false; $('#resetBtn').textContent = 'Nollattu ✓'; renderSettings();
+};
+
+/* ================= Käynnistys ================= */
+applyCalm();
+renderSplash();
+})();
+</script>
+</body>
+</html>
