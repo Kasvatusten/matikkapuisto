@@ -152,14 +152,14 @@ h1{font-size:clamp(28px,4.8vw,48px);margin:0;letter-spacing:.5px}
 .card .frame{background:transparent;border-color:#e2e8f3}
 .card.glow{animation:glow 1.1s 3}
 @media (max-width:540px){.cards{grid-template-columns:1fr 1fr}}
-.ride{display:flex;flex-direction:column;align-items:center;width:min(100%,900px)}
-.train{display:flex;gap:clamp(6px,1.2vw,12px);align-items:flex-end;justify-content:center;flex-wrap:wrap}
+.ride{display:flex;flex-direction:column;align-items:center;width:min(100%,900px);max-width:100%}
+.train{display:flex;gap:var(--gap);align-items:flex-end;justify-content:center;flex-wrap:nowrap;width:100%;--gap:clamp(4px,1.2vw,12px);--w:min(clamp(74px,13vmin,124px),calc((100vw - 32px - (var(--n) - 1) * var(--gap)) / var(--n)))}
 .car{display:flex;flex-direction:column;align-items:center}
-.rider{font-size:clamp(28px,5vmin,48px);line-height:1;margin-bottom:-6px;z-index:1}
-.wagon{width:clamp(74px,13vmin,124px);height:clamp(70px,12vmin,112px);background:var(--purple);border-radius:20px 20px 12px 12px;
-  color:#fff;font-size:clamp(38px,7vmin,66px);font-weight:800;display:flex;align-items:center;justify-content:center;position:relative;
+.rider{font-size:calc(var(--w) * .42);line-height:1;margin-bottom:-6px;z-index:1}
+.wagon{width:var(--w);height:calc(var(--w) * .92);background:var(--purple);border-radius:20px 20px 12px 12px;
+  color:#fff;font-size:calc(var(--w) * .52);font-weight:800;display:flex;align-items:center;justify-content:center;position:relative;
   box-shadow:inset 0 -8px 0 rgba(0,0,0,.15);transition:transform .15s}
-.wagon::before,.wagon::after{content:"";position:absolute;bottom:-14px;width:24px;height:24px;border-radius:50%;background:#444;border:5px solid #999}
+.wagon::before,.wagon::after{content:"";position:absolute;bottom:calc(var(--w) * -.12);width:calc(var(--w) * .2);height:calc(var(--w) * .2);border-radius:50%;background:#444;border:calc(var(--w) * .04) solid #999}
 .wagon::before{left:12%}.wagon::after{right:12%}
 .wagon.missing{background:#fff;color:var(--purple);outline:4px dashed var(--purple);outline-offset:-4px;box-shadow:none}
 .wagon.hl{transform:translateY(-8px) scale(1.06);background:#ffcf4d;color:var(--ink)}
@@ -834,7 +834,7 @@ function genSeq(){
     praise:`Luku ${ans}`, praiseSay:seq.map(v => NUM[v]).join(', ') + '.', hintText:'Luetaan lukujono yhdessä.',
     render(){
       const ride = document.createElement('div'); ride.className='ride';
-      const train = document.createElement('div'); train.className='train';
+      const train = document.createElement('div'); train.className='train'; train.style.setProperty('--n', len);
       seq.forEach((v,i) => {
         const car = document.createElement('div'); car.className='car';
         const r = document.createElement('div'); r.className='rider'; r.textContent = riders[i % riders.length];
