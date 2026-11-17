@@ -153,7 +153,7 @@ h1{font-size:clamp(28px,4.8vw,48px);margin:0;letter-spacing:.5px}
 .answers{display:flex;justify-content:center;gap:var(--ag);padding:8px 16px;flex-wrap:nowrap;--ag:clamp(8px,2.6vw,28px);
   --aw:min(clamp(60px,15vmin,136px),calc((100vw - 32px - (var(--an,3) - 1) * var(--ag)) / var(--an,3)))}
 .ans{width:var(--aw);height:var(--aw);border:none;border-radius:calc(var(--aw) * .2);background:#fff;box-shadow:var(--shadow);
-  font-size:calc(var(--aw) * .55);font-weight:800;border-bottom:calc(var(--aw) * .06) solid var(--c);padding:0;transition:transform .1s}
+  font-size:calc(var(--aw) * var(--af, .55));font-weight:800;border-bottom:calc(var(--aw) * .06) solid var(--c);padding:0;transition:transform .1s}
 .ans:active{transform:scale(.95)}
 .ans.right,.card.right{background:#d8f6e5;border-bottom-color:var(--green);outline:5px solid var(--green)}
 .ans.wrong,.card.wrong{opacity:.3;animation:shake .4s}
@@ -180,7 +180,7 @@ h1{font-size:clamp(28px,4.8vw,48px);margin:0;letter-spacing:.5px}
 .car{display:flex;flex-direction:column;align-items:center}
 .rider{font-size:calc(var(--w) * .42);line-height:1;margin-bottom:-6px;z-index:1}
 .wagon{width:var(--w);height:calc(var(--w) * .92);background:var(--purple);border-radius:20px 20px 12px 12px;
-  color:#fff;font-size:calc(var(--w) * .52);font-weight:800;display:flex;align-items:center;justify-content:center;position:relative;
+  color:#fff;font-size:calc(var(--w) * var(--wf, .52));font-weight:800;display:flex;align-items:center;justify-content:center;position:relative;
   box-shadow:inset 0 -8px 0 rgba(0,0,0,.15);transition:transform .15s}
 .wagon::before,.wagon::after{content:"";position:absolute;bottom:calc(var(--w) * -.12);width:calc(var(--w) * .2);height:calc(var(--w) * .2);border-radius:50%;background:#444;border:calc(var(--w) * .04) solid #999}
 .wagon::before{left:12%}.wagon::after{right:12%}
@@ -192,6 +192,25 @@ h1{font-size:clamp(28px,4.8vw,48px);margin:0;letter-spacing:.5px}
 .expr{font-size:clamp(28px,6.5vmin,64px);font-weight:800;background:#fff;border-radius:20px;padding:4px clamp(14px,3vw,26px);box-shadow:var(--shadow)}
 .expr .q{color:var(--c)}
 
+/* Pomppulinna (hypyt) */
+.hop{display:flex;align-items:flex-end;width:100%;max-width:900px;position:relative;
+  --w:min(clamp(46px,13vmin,112px),calc((100vw - 32px) / (1.8 * var(--n) - .8)));padding-top:calc(var(--w) * .95)}
+.pad{width:var(--w);height:calc(var(--w) * .8);flex:none;background:var(--orange);border-radius:calc(var(--w) * .2);color:#fff;
+  font-weight:800;font-size:calc(var(--w) * var(--pf,.5));display:flex;align-items:center;justify-content:center;position:relative;
+  box-shadow:inset 0 calc(var(--w) * -.08) 0 rgba(0,0,0,.15);transition:transform .15s}
+.pad.missing{background:#fff;color:var(--orange);outline:4px dashed var(--orange);outline-offset:-4px;box-shadow:none}
+.pad.hl{background:#ffcf4d;color:var(--ink);transform:translateY(-6px) scale(1.06)}
+.slot{position:absolute;left:0;right:0;bottom:100%;display:flex;justify-content:center;pointer-events:none;z-index:3}
+.roo{font-size:calc(var(--w) * .8);line-height:1;filter:drop-shadow(0 4px 2px rgba(0,0,0,.22))}
+.gap{flex:1;min-width:0;height:calc(var(--w) * 1.2);position:relative;container-type:inline-size;display:flex;align-items:flex-end;justify-content:center}
+.gap .arc{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.gap .lbl{position:absolute;top:-4%;left:50%;transform:translateX(-50%);font-size:calc(var(--w) * .34);font-weight:800;color:var(--orange);
+  background:#fff;border-radius:999px;padding:0 .4em;z-index:2;white-space:nowrap}
+.hurdles{display:flex;align-items:flex-end;justify-content:center;gap:2cqw;width:100%;position:relative;z-index:1}
+.hurdle{width:min(calc(80cqw / var(--hc, 1) - 2cqw), 46px, calc(var(--w) * .7));height:auto;flex:none}
+.sethead{margin:16px 0 0;padding-top:12px;border-top:3px solid #dfe5f1;font-size:19px;color:var(--ink)}
+.setnote{font-size:14px;color:var(--muted);margin:6px 0 0;line-height:1.4}
+.station:last-child:nth-child(odd){grid-column:1 / -1}
 /* Loppu */
 .end{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;text-align:center}
 .end .host-face{font-size:clamp(90px,18vmin,170px);animation:hop 1s 2}
@@ -452,7 +471,8 @@ const STATIONS = {
   count:  {name:'Karuselli',     emoji:'🎠', skill:'Montako?',         host:'🐻', color:'var(--red)'},
   listen: {name:'Maailmanpyörä', emoji:'🎡', skill:'Kuuntele ja etsi', host:'🐰', color:'var(--blue)'},
   seq:    {name:'Vuoristorata',  emoji:'🎢', skill:'Lukujono',         host:'🦊', color:'var(--purple)'},
-  calc:   {name:'Ilmapallokoju', emoji:'🎈', skill:'Laskut',           host:'🐸', color:'var(--green)'}
+  calc:   {name:'Ilmapallokoju', emoji:'🎈', skill:'Laskut',           host:'🐸', color:'var(--green)'},
+  hop:    {name:'Pomppulinna',   emoji:'🏰', skill:'Hypyt lukujonossa', host:'🦘', color:'var(--orange)'}
 };
 const PRAISE = ['Oikein!','Hienoa!','Mahtavaa!','Loistavaa!','Juuri niin!','Upeaa!'];
 const RIDERS = ['🐻','🐰','🐸','🐼','🐯','🐨','🐷','🐵'];
@@ -486,12 +506,18 @@ const RIDES = [
 
 /* ================= Tallennus (vain tälle laitteelle) ================= */
 const KEY = 'huvipuistoMatikka.v1';
-const DEFAULTS = {max:10, options:3, rounds:5, ops:'both', backwards:false, speech:true, calm:false, kioskAt:30};
-const store = {settings:{...DEFAULTS}, tickets:{count:0, listen:0, seq:0, calc:0}, spent:0, kioskOpen:false, inv:{}, placed:[], friend:'🐰'};
+const DEFAULTS = {max:10, options:3, rounds:5, ops:'both', speech:true, calm:false, kioskAt:30,
+  seqMax:10, seqDir:'fwd', hopMax:20, hopDir:'fwd', hopSteps:[2,5]};
+const store = {settings:{...DEFAULTS}, tickets:{count:0, listen:0, seq:0, calc:0, hop:0}, spent:0, kioskOpen:false, inv:{}, placed:[], friend:'🐰'};
 try {
   const s = JSON.parse(localStorage.getItem(KEY));
   if (s){
     Object.assign(store.settings, s.settings || {});
+    const ss = s.settings || {};
+    if (!('seqMax' in ss) && typeof ss.max === 'number') store.settings.seqMax = ss.max;      // vanhasta tallennuksesta
+    if (!('seqDir' in ss)) store.settings.seqDir = ss.backwards ? 'both' : 'fwd';
+    delete store.settings.backwards;
+    if (!Array.isArray(store.settings.hopSteps) || !store.settings.hopSteps.length) store.settings.hopSteps = DEFAULTS.hopSteps.slice();
     Object.assign(store.tickets, s.tickets || {});
     if (typeof s.spent === 'number') store.spent = s.spent;
     store.kioskOpen = !!s.kioskOpen;
@@ -809,9 +835,10 @@ function stepAlong(els, words){
 const countAlong = cells => stepAlong(cells, cells.map((_,i) => NUM[i+1]));
 function numberAnswers(opts){
   const a = $('#answers'); a.style.setProperty('--an', opts.length);
+  a.style.setProperty('--af', Math.max(...opts) >= 100 ? .4 : .55);
   opts.forEach(v => {
     const b = document.createElement('button');
-    b.className = 'ans'; b.textContent = v; b.setAttribute('aria-label', NUM[v]);
+    b.className = 'ans'; b.textContent = v; b.setAttribute('aria-label', numWord(v));
     b.onclick = () => answer(b, v);
     a.appendChild(b);
   });
@@ -851,19 +878,22 @@ function genListen(){
   };
 }
 function genSeq(){
-  const S = store.settings, len = S.max<=5 ? 4 : 5;
-  const start = rand(0, S.max-len+1);
+  const S = store.settings, M = S.seqMax, len = M<=5 ? 4 : 5;
+  const start = rand(0, M-len+1);
   let seq = Array.from({length:len}, (_,i) => start+i);
-  const back = S.backwards && Math.random()<.5;
+  const back = S.seqDir==='back' || (S.seqDir==='both' && Math.random()<.5);
   if (back) seq.reverse();
   const miss = rand(0, len-1), ans = seq[miss];
   const riders = shuffle(RIDERS.slice()); const wagons = [];
   return {
-    answer:ans, prompt:'Mikä luku puuttuu?', speech: back ? 'Lukujono menee taaksepäin. Mikä luku puuttuu?' : 'Mikä luku puuttuu?',
-    praise:`Luku ${ans}`, praiseSay:seq.map(v => NUM[v]).join(', ') + '.', hintText:'Luetaan lukujono yhdessä.',
+    answer:ans,
+    prompt: back ? 'Mikä luku puuttuu? <small>⬅️ taaksepäin</small>' : 'Mikä luku puuttuu?',
+    speech: back ? 'Lukujono menee taaksepäin. Mikä luku puuttuu?' : 'Mikä luku puuttuu?',
+    praise:`Luku ${ans}`, praiseSay:seq.map(numWord).join(', ') + '.', hintText:'Luetaan lukujono yhdessä.',
     render(){
       const ride = document.createElement('div'); ride.className='ride';
       const train = document.createElement('div'); train.className='train'; train.style.setProperty('--n', len);
+      if (M >= 100) train.style.setProperty('--wf', .38);
       seq.forEach((v,i) => {
         const car = document.createElement('div'); car.className='car';
         const r = document.createElement('div'); r.className='rider'; r.textContent = riders[i % riders.length];
@@ -873,10 +903,79 @@ function genSeq(){
       });
       const rail = document.createElement('div'); rail.className='rail';
       ride.append(train, rail); $('#task').appendChild(ride);
-      numberAnswers(makeOptions(ans, 0, S.max, S.options));
+      numberAnswers(makeOptions(ans, 0, M, S.options));
     },
     onRight(){ const w = wagons[miss]; w.textContent = ans; w.classList.remove('missing'); },
-    hint(){ stepAlong(wagons, seq.map((v,i) => i===miss ? 'mikä?' : NUM[v])); }
+    hint(){ stepAlong(wagons, seq.map((v,i) => i===miss ? 'mikä?' : numWord(v))); }
+  };
+}
+/* Pomppulinna: kenguru hyppää lukujonossa esteiden yli */
+const HURDLE = `<svg class="hurdle" viewBox="0 0 40 30" aria-hidden="true"><rect x="5" y="4" width="4" height="26" rx="2" fill="#8a6d4e"/><rect x="31" y="4" width="4" height="26" rx="2" fill="#8a6d4e"/><rect x="2" y="6" width="36" height="7" rx="3" fill="#ef5b5b"/><rect x="2" y="17" width="36" height="7" rx="3" fill="#fff" stroke="#ef5b5b" stroke-width="2"/></svg>`;
+function makeHopOptions(ans, step, M, k){
+  const cand = shuffle([ans+step, ans-step, ans+1, ans-1, ans+2, ans-2].filter(v => v>=0 && v<=M && v!==ans));
+  const ordered = [...cand.filter(v => Math.abs(v-ans)===step), ...cand.filter(v => Math.abs(v-ans)!==step)];
+  const o = new Set([ans]);
+  ordered.forEach(v => { if (o.size < k) o.add(v); });
+  for (let d=1; o.size<k && d<=M; d++) for (const v of [ans+d, ans-d]) if (o.size<k && v>=0 && v<=M) o.add(v);
+  return shuffle([...o]);
+}
+function moveRoo(roo, pad){
+  const from = roo.getBoundingClientRect();
+  pad.querySelector('.slot').appendChild(roo);
+  if (reduced() || !roo.animate) return;
+  const to = roo.getBoundingClientRect(), dx = from.left - to.left, dy = from.top - to.top;
+  try { roo.animate([
+    {transform:`translate(${dx}px,${dy}px)`},
+    {transform:`translate(${dx/2}px,${dy/2 - to.height*.9}px)`, offset:.5},
+    {transform:'translate(0,0)'}], {duration:520, easing:'ease-in-out'}); } catch(e){}
+}
+function genHop(){
+  const S = store.settings, M = S.hopMax;
+  let steps = S.hopSteps.filter(k => 2*k <= M);          // vähintään kolme tolppaa pitää mahtua alueelle
+  if (!steps.length) steps = [2];
+  const step = pick(steps);
+  let L = innerWidth < 500 && step >= 4 ? 3 : (innerWidth >= 700 ? 5 : 4);
+  while (L > 3 && step*(L-1) > M) L--;
+  const span = step*(L-1);
+  let start = rand(0, M-span);
+  if (step >= 5) start = step * rand(0, Math.floor((M-span)/step));
+  const back = S.hopDir==='back' || (S.hopDir==='both' && Math.random()<.5);
+  let seq = Array.from({length:L}, (_,i) => start + i*step);
+  if (back) seq.reverse();
+  const miss = rand(0, L-1), ans = seq[miss];
+  const pads = []; let roo = null;
+  const hopAlong = speak => {
+    const words = seq.map((v,i) => i===miss ? 'mikä?' : numWord(v));
+    pads.forEach(x => x.classList.remove('hl'));
+    pads.forEach((pd,i) => later(() => { moveRoo(roo, pd); pd.classList.add('hl'); if (speak) say(words[i]); }, i*1100));
+    later(() => { pads.forEach(x => x.classList.remove('hl')); moveRoo(roo, pads[0]); }, L*1100 + 400);
+  };
+  return {
+    answer:ans,
+    prompt:`Kenguru hyppää <span class="num">${step}</span> kerrallaan ${back ? '⬅️' : '➡️'}<br><small>Mikä luku puuttuu?</small>`,
+    speech:`Kenguru hyppää ${numWord(step)} kerrallaan ${back ? 'taaksepäin' : 'eteenpäin'}. Mikä luku puuttuu?`,
+    praise:`Luku ${ans}`, praiseSay:seq.map(numWord).join(', ') + '.', hintText:'Katsotaan, miten kenguru hyppää!',
+    render(){
+      const hop = document.createElement('div'); hop.className = 'hop'; hop.style.setProperty('--n', L);
+      if (M >= 100) hop.style.setProperty('--pf', .38);
+      seq.forEach((v,i) => {
+        if (i > 0){
+          const hc = Math.min(step-1, 4);
+          const g = document.createElement('div'); g.className = 'gap'; g.style.setProperty('--hc', hc);
+          g.innerHTML = `<svg class="arc" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M 0 33 Q 50 -35 100 33" fill="none" stroke="var(--orange)" stroke-width="3" stroke-dasharray="7 6" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg><span class="lbl">${back ? '−' : '+'}${step}</span><div class="hurdles">${HURDLE.repeat(hc)}</div>`;
+          hop.appendChild(g);
+        }
+        const pd = document.createElement('div'); pd.className = 'pad' + (i===miss ? ' missing' : '');
+        pd.innerHTML = `<span class="pv">${i===miss ? '?' : v}</span><div class="slot"></div>`;
+        hop.appendChild(pd); pads.push(pd);
+      });
+      roo = document.createElement('div'); roo.className = 'roo'; roo.textContent = '🦘'; roo.setAttribute('aria-hidden','true');
+      pads[0].querySelector('.slot').appendChild(roo);
+      $('#task').appendChild(hop);
+      numberAnswers(makeHopOptions(ans, step, M, S.options));
+    },
+    onRight(){ const pd = pads[miss]; pd.querySelector('.pv').textContent = ans; pd.classList.remove('missing'); hopAlong(false); },
+    hint(){ hopAlong(true); }
   };
 }
 function genCalc(){
@@ -920,7 +1019,7 @@ function genCalc(){
     }
   };
 }
-const GEN = {count:genCount, listen:genListen, seq:genSeq, calc:genCalc};
+const GEN = {count:genCount, listen:genListen, seq:genSeq, calc:genCalc, hop:genHop};
 
 /* ================= Pelin kulku ================= */
 /* Sovittaa esineiden koon näytölle: ei vaakasuuntaista ylitystä, eikä (jos mahdollista) pystyvieritystä */
@@ -1240,12 +1339,24 @@ $('#parkSpeak').onclick = () => say($('#parkBubble').textContent);
 $('#invToKiosk').onclick = openKiosk;
 
 /* ================= Asetukset ================= */
+const RANGE_SMALL = [[5,'0–5'],[10,'0–10'],[20,'0–20']];
+const RANGE_BIG = [[5,'0–5'],[10,'0–10'],[20,'0–20'],[50,'0–50'],[100,'0–100']];
+const DIRS = [['fwd','➡️ Eteenpäin'],['back','⬅️ Taaksepäin'],['both','↔️ Sekaisin']];
 const SETTING_UI = [
-  {key:'max',       label:'Lukualue',                      opts:[[5,'0–5'],[10,'0–10'],[20,'0–20']]},
+  {head:'Yleiset asetukset'},
+  {key:'max',       label:'Lukualue (Karuselli, Maailmanpyörä ja Ilmapallokoju)', opts:RANGE_SMALL},
   {key:'options',   label:'Vastausvaihtoehtoja',           opts:[[2,'2'],[3,'3'],[4,'4']]},
   {key:'rounds',    label:'Tehtäviä yhdellä kierroksella', opts:[[3,'3'],[5,'5'],[8,'8']]},
   {key:'ops',       label:'Ilmapallokojun laskut',         opts:[['add','Yhteenlasku'],['sub','Vähennyslasku'],['both','Molemmat']]},
-  {key:'backwards', label:'Vuoristorata myös taaksepäin',  opts:[[false,'Ei'],[true,'Kyllä']]},
+  {head:'🎢 Vuoristorata (lukujono)'},
+  {key:'seqMax',    label:'Lukualue',                      opts:RANGE_BIG},
+  {key:'seqDir',    label:'Suunta',                        opts:DIRS},
+  {head:'🏰 Pomppulinna (hyppäys lukujonossa)'},
+  {key:'hopMax',    label:'Lukualue',                      opts:RANGE_BIG.slice(1)},
+  {key:'hopDir',    label:'Suunta',                        opts:DIRS},
+  {key:'hopSteps',  label:'Hyppyjen koko (voit valita useita)', multi:true, opts:[[2,'2'],[3,'3'],[4,'4'],[5,'5'],[10,'10']],
+   note:'Hyppy, joka ei mahdu lukualueelle kolme kertaa, jätetään pois. Esimerkiksi hyppy 10 vaatii vähintään alueen 0–20.'},
+  {head:'Muut asetukset'},
   {key:'kioskAt',   label:'Kioski aukeaa, kun lippuja on kerätty', opts:[[10,'10'],[20,'20'],[30,'30'],[50,'50']]},
   {key:'speech',    label:'Puhe',                          opts:[[true,'Päällä'],[false,'Pois']]},
   {key:'calm',      label:'Rauhallinen tila (maisema ja palkinnot eivät liiku)', opts:[[false,'Ei'],[true,'Kyllä']]}
@@ -1253,16 +1364,29 @@ const SETTING_UI = [
 function renderSettings(){
   const box = $('#setRows'); box.innerHTML = '';
   SETTING_UI.forEach(s => {
+    if (s.head){ const h = document.createElement('h3'); h.className = 'sethead'; h.textContent = s.head; box.appendChild(h); return; }
     const row = document.createElement('div'); row.className='row';
     row.innerHTML = `<label>${s.label}</label>`;
     const seg = document.createElement('div'); seg.className='seg';
     s.opts.forEach(([val,txt]) => {
       const b = document.createElement('button'); b.textContent = txt;
-      if (store.settings[s.key] === val) b.classList.add('sel');
-      b.onclick = () => { store.settings[s.key] = val; save(); applyCalm(); renderSettings(); };
+      if (s.multi){
+        const on = store.settings[s.key].includes(val); if (on) b.classList.add('sel');
+        b.setAttribute('aria-pressed', on);
+        b.onclick = () => {
+          const cur = store.settings[s.key].slice(), i = cur.indexOf(val);
+          if (i >= 0){ if (cur.length > 1) cur.splice(i,1); } else cur.push(val);
+          store.settings[s.key] = cur.sort((x,y) => x-y); save(); renderSettings();
+        };
+      } else {
+        if (store.settings[s.key] === val) b.classList.add('sel');
+        b.onclick = () => { store.settings[s.key] = val; save(); applyCalm(); renderSettings(); };
+      }
       seg.appendChild(b);
     });
-    row.appendChild(seg); box.appendChild(row);
+    row.appendChild(seg);
+    if (s.note){ const n = document.createElement('p'); n.className = 'setnote'; n.textContent = s.note; row.appendChild(n); }
+    box.appendChild(row);
   });
   loadVoices();
   $('#voiceNote').textContent = !hasSpeech ? 'Tämä selain ei tue puhetta. Tekstit näkyvät silti ruudulla.'
